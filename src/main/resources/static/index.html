@@ -1,0 +1,2992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawTrack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <style>
+        :root { --primary: #6C63FF; --secondary: #4ECDC4; --dark: #2D3436; --light: #F7F9FC; --text-grey: #636e72; --shadow: 0 10px 30px rgba(0,0,0,0.08); --danger: #ff7675; --card-bg: #ffffff; --success: #00b894; --warning: #fdcb6e; --blue: #0984e3; }
+        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Nunito', sans-serif; background-color: var(--light); }
+        .hidden { display: none !important; }
+        .dashboard-container { display: flex; height: 100%; width: 100%; overflow: hidden; }
+        .sidebar { width: 270px; background: white; padding: 30px 20px; display: flex; flex-direction: column; border-right: 1px solid #eee; flex-shrink: 0; overflow-y: auto; z-index: 10; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; height: 100%; box-sizing: border-box; }
+
+        .btn { padding: 10px 20px; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), #5a52d5); color: white; box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(108, 99, 255, 0.4); }
+        .btn-outline { background: transparent; border: 2px solid #ddd; color: var(--text-grey); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); background: white; }
+        .btn-danger { background: #ffeaea; color: var(--danger); border: 1px solid #ffcccc; }
+        .btn-danger:hover { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+
+        .auth-wrapper { display: flex; height: 100%; width: 100%; background: white; overflow-y: auto; }
+        .auth-left { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px; }
+        .auth-right { flex: 1.3; background: url('https://images.unsplash.com/photo-1548199973-03cce0bbc87b?q=80&w=2069&auto=format&fit=crop') center/cover; position: relative; }
+        .auth-right::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(108, 99, 255, 0.2), rgba(0,0,0,0.1)); }
+        .auth-box { width: 100%; max-width: 380px; text-align: center; }
+        .input-group { margin-bottom: 15px; position: relative; text-align: left; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa; transition: 0.3s; }
+        input, select, textarea { width: 100%; padding: 14px 14px 14px 45px; border: 2px solid #f0f0f0; border-radius: 12px; font-size: 1rem; outline: none; background: #f9f9f9; box-sizing: border-box; transition: 0.3s; font-family: 'Nunito', sans-serif; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.1); }
+        .input-group:focus-within i { color: var(--primary); }
+
+        .nav-item { padding: 14px 18px; margin-bottom: 8px; border-radius: 12px; color: var(--text-grey); cursor: pointer; display: flex; align-items: center; gap: 15px; font-weight: 600; transition: all 0.2s ease; }
+        .nav-item:hover { background: #f8f9fa; color: var(--primary); transform: translateX(5px); }
+        .nav-item.active { background: #eeedff; color: var(--primary); }
+
+        .profile-card { background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.05); max-width: 850px; margin: 0 auto; border: 1px solid #fff; position: relative; }
+        .profile-banner { height: 160px; background: linear-gradient(45deg, #6C63FF, #845ef7, #4ECDC4); position: relative; }
+        .profile-header-content { padding: 0 40px; margin-top: -75px; display: flex; align-items: flex-end; justify-content: space-between; position: relative; margin-bottom: 30px; }
+        .avatar-large { width: 140px; height: 140px; border-radius: 50%; border: 6px solid white; object-fit: cover; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; z-index: 10; }
+        .edit-btn-floating { background: white; color: var(--dark); border: none; padding: 10px 20px; border-radius: 30px; font-weight: 700; box-shadow: 0 5px 15px rgba(0,0,0,0.08); cursor: pointer; transition: 0.3s; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .edit-btn-floating:hover { background: var(--primary); color: white; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3); }
+        .profile-body { padding: 0 40px 40px; }
+        .modern-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .info-box { background: #f8f9fc; padding: 20px; border-radius: 16px; border: 1px solid #edf2f7; transition: 0.3s; display: flex; flex-direction: column; gap: 5px; }
+        .info-box:hover { background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transform: translateY(-3px); border-color: #e2e8f0; }
+        .info-icon { font-size: 1.2rem; color: var(--primary); margin-bottom: 5px; }
+        .info-label { font-size: 0.75rem; font-weight: 700; color: #a0aec0; text-transform: uppercase; }
+        .info-value { font-size: 1.1rem; font-weight: 700; color: var(--dark); word-break: break-word; }
+
+        .pets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; padding-bottom: 50px; }
+        .pet-card { background: white; border-radius: 20px; padding: 25px 20px; box-shadow: var(--shadow); text-align: center; position: relative; transition: 0.3s; border: 1px solid #f0f0f0; }
+        .pet-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(108, 99, 255, 0.15); border-color: var(--primary); }
+        .pet-img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 4px solid #f0f0f0; margin-bottom: 15px; cursor: pointer; }
+
+        .vet-card { display: flex; align-items: center; background: white; padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 1px solid #f0f0f0; transition: 0.3s; box-shadow: var(--shadow); }
+        .vet-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+        .vet-avatar { width: 70px; height: 70px; border-radius: 50%; object-fit: cover; margin-right: 20px; border: 3px solid #eee; }
+        .vet-info { flex: 1; }
+
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-completed { background: #cce5ff; color: #004085; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .appt-card { display: flex; justify-content: space-between; align-items: center; background: white; padding: 20px; border-radius: 16px; border-left: 6px solid #ddd; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: 0.3s; }
+        .appt-card:hover { transform: translateX(5px); }
+        .appt-pending { border-left-color: var(--warning); }
+        .appt-confirmed { border-left-color: var(--success); }
+        .appt-completed { border-left-color: var(--blue); }
+        .appt-cancelled { border-left-color: var(--danger); opacity: 0.6; }
+
+        .form-overlay { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); margin-bottom: 30px; }
+        .upload-box { border: 2px dashed #cbd5e0; border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; background: #f8f9fa; }
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: white; width: 90%; max-width: 600px; max-height: 85vh; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.2); position: relative; }
+        .scrollable-body { overflow-y: auto; flex: 1; position: relative; width: 100%; }
+        .modal-header { padding: 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .modal-body { padding: 20px; overflow-y: auto; flex: 1; background: #f9f9f9; }
+
+        .timeline-item { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 5px solid var(--secondary); box-shadow: 0 2px 10px rgba(0,0,0,0.03); position: relative; }
+        .timeline-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 700; color: var(--dark); }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; color: white; font-weight: 700; }
+        .delete-record-btn { position: absolute; bottom: 15px; right: 15px; background: #ffeaea; color: var(--danger); border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        .filter-bar { display: flex; gap: 10px; background: #eee; padding: 10px; border-radius: 12px; margin-bottom: 15px; }
+        .filter-bar select, .filter-bar input { padding: 8px; font-size: 0.85rem; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0; flex: 1; }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; flex-direction: row; position: fixed; bottom: 0; left: 0; padding: 10px; z-index: 1000; justify-content: space-around; height: auto; border-top: 1px solid #eee; }
+            .sidebar .brand { display: none; } .nav-item { flex-direction: column; font-size: 0.7rem; padding: 5px; margin: 0; }
+            .main-content { padding: 15px 15px 90px 15px; } .modern-grid { grid-template-columns: 1fr; }
+            .profile-header-content { flex-direction: column; align-items: center; margin-top: -60px; }
+            .edit-btn-floating { margin-top: 15px; width: 100%; justify-content: center; }
+            .vet-card, .appt-card { flex-direction: column; text-align: center; gap: 10px; } .vet-avatar { margin: 0 0 10px 0; }
+        }
+
+
+.cart-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    transition: 0.3s;
+}
+.cart-item:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+
+.saved-address-chip {
+    display: inline-block;
+    padding: 8px 15px;
+    background: #eef2ff;
+    border: 1px solid #6c63ff;
+    color: #6c63ff;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 0.85rem;
+    transition: 0.3s;
+}
+.saved-address-chip:hover { background: #6c63ff; color: white; }
+
+.checkout-btn {
+    background: linear-gradient(135deg, #6c63ff, #845ef7);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    width: 100%;
+    font-weight: 700;
+    margin-top: 15px;
+}
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000001 !important;
+}
+
+.modal-dialog {
+    margin: 0 auto !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    z-index: 1000002 !important;
+}
+
+.modal-backdrop {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    z-index: 1000000 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+body.modal-open .dashboard-container {
+    filter: blur(5px);
+    pointer-events: none;
+}
+
+.checkout-form-group { margin-bottom: 15px; }
+.checkout-form-group label { font-weight: 700; font-size: 0.85rem; color: var(--dark); margin-bottom: 5px; display: block; }
+.checkout-form-group input { padding: 10px 15px 10px 15px !important; }
+
+.address-suggestion-title { font-size: 0.8rem; font-weight: 800; color: var(--primary); margin-top: 15px; text-transform: uppercase; }
+
+.modal-xl { max-width: 1100px; }
+.modal-content {
+    border: none;
+    border-radius: 25px; /* Thoda zyada rounded */
+    box-shadow: 0 25px 80px rgba(0,0,0,0.3); /* Premium Shadow */
+    overflow: hidden;
+    width: 100%; /* Dialogue width control */
+}
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #ffffff;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+.form-check-input {
+    margin-top: 0 !important;
+}
+
+.payment-method-container {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.payment-method-container .form-check {
+    display: flex !important;
+    align-items: center !important;
+    padding: 12px 15px !important;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    margin: 0 !important;
+    cursor: pointer;
+}
+
+.payment-method-container .form-check-input {
+    margin-right: 12px !important;
+    margin-top: 0 !important;
+    width: 1.2rem;
+    height: 1.2rem;
+    cursor: pointer;
+}
+
+.payment-method-container .form-check-label {
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+.order-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    transition: 0.3s;
+    border: 1px solid #f0f0f0;
+    display: flex;
+    gap: 20px;
+    position: relative;
+}
+
+.order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(108, 99, 255, 0.1);
+}
+
+.order-img-wrapper {
+    width: 100px;
+    height: 100px;
+    background: #f8f9fa;
+    border-radius: 15px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #eee;
+}
+
+.order-status-pill {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.checkout-form-group input {
+    width: 100%;
+    padding: 12px 18px !important;
+    border: 2px solid #f1f3f9 !important;
+    background: #f8f9fc !important;
+    border-radius: 14px !important;
+    transition: 0.3s ease;
+    font-weight: 600;
+}
+
+.checkout-form-group input:focus {
+    border-color: var(--primary) !important;
+    background: #fff !important;
+    box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.1) !important;
+    outline: none;
+}
+
+.checkout-form-group label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #a0aec0;
+    margin-left: 5px;
+}
+        :root {
+    --primary: #6c5ce7;
+    --primary-light: #a29bfe;
+    --dark: #2d3436;
+}
+
+.auth-wrapper {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+}
+
+
+.auth-left {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    padding: 40px;
+}
+
+.auth-box {
+    width: 100%;
+    max-width: 400px;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.auth-right {
+    flex: 1.2;
+    background: linear-gradient(rgba(108, 92, 231, 0.2), rgba(108, 92, 231, 0.4)),
+                url('https://images.unsplash.com/photo-1583337130417-3346a1be7dee?q=80&w=1964&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+    background: #f1f3f6;
+    border-radius: 12px;
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    border: 2px solid transparent;
+    transition: 0.3s;
+}
+
+.input-group:focus-within {
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 5px 15px rgba(108, 92, 231, 0.1);
+}
+
+.input-group i {
+    color: var(--primary);
+    margin-right: 15px;
+    width: 20px;
+    text-align: center;
+}
+
+.input-group input, .input-group select {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    font-weight: 500;
+    color: var(--dark);
+}
+
+.btn-primary {
+    background: var(--primary);
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 8px 20px rgba(108, 92, 231, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(108, 92, 231, 0.4);
+}
+
+.hidden { display: none; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+    </style>
+</head>
+<body>
+
+<div id="authScreen" class="auth-wrapper">
+    <div class="auth-left">
+        <div class="auth-box">
+            <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary); margin-bottom: 5px;">
+                <i class="fa-solid fa-paw"></i> PawTrack
+            </div>
+            <p style="color:#aaa; font-weight: 500; margin-bottom: 30px;">Digital Pet Care Solution</p>
+
+            <h2 id="authTitle" style="color:var(--dark); font-weight: 700; margin-bottom: 25px;">Welcome Back</h2>
+
+            <div id="formSection">
+                <div id="roleDiv" class="input-group hidden">
+                    <i class="fa-solid fa-user-tag"></i>
+                    <select id="roleInput">
+                        <option value="OWNER">Pet Owner</option>
+                        <option value="VET">Veterinarian</option>
+                        <option value="ADMIN">System Admin</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="emailInput" placeholder="Enter your email">
+                </div>
+
+                <button class="btn btn-primary" style="width:100%" onclick="sendOtp()">
+                    Get OTP <i class="fa-solid fa-arrow-right" style="margin-left:8px; color:white;"></i>
+                </button>
+
+                <p style="margin-top:25px; color:#666; text-align: center;">
+                    Don't have an account?
+                    <span id="toggleBtn" onclick="toggleAuth()" style="color:var(--primary); cursor:pointer; font-weight:700; margin-left:5px;">Create Account</span>
+                </p>
+            </div>
+
+            <div id="otpSection" class="hidden">
+                <div style="background:#e1fdf4; color:#00b894; padding:15px; border-radius:12px; margin-bottom:20px; font-weight:700; text-align:center;">
+                    <i class="fa-solid fa-circle-check"></i> OTP Sent to Email!
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-key"></i>
+                    <input type="text" id="otpInput" placeholder="Enter 6-digit OTP" style="text-align: center; letter-spacing: 5px; font-weight:800; font-size: 1.2rem;">
+                </div>
+
+                <button class="btn btn-primary" style="width:100%" onclick="verifyOtp()">Verify & Login</button>
+            </div>
+
+            <p id="msgBox" style="margin-top:20px; font-size:0.9rem; font-weight:700; min-height:20px; text-align:center;"></p>
+        </div>
+    </div>
+
+    <div class="auth-right">
+        <div style="position: absolute; bottom: 50px; left: 50px; color: white; text-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+            <h1 style="font-size: 3rem; font-weight: 800;">Better Care for<br>Your Best Friends.</h1>
+        </div>
+    </div>
+</div>
+<div id="dashboardScreen" class="dashboard-container hidden">
+    <div class="sidebar">
+        <div style="font-size: 1.6rem; font-weight: 900; color: var(--primary); margin-bottom: 40px; padding-left: 10px;">
+            <i class="fa-solid fa-paw"></i> PawTrack
+        </div>
+
+        <div class="nav-item active" id="navHome" onclick="showSection('homeSection', this)">
+            <i class="fa-solid fa-grid-2"></i> Dashboard
+        </div>
+
+        <div class="nav-item hidden" id="navAdminDash" onclick="showSection('adminDashboardMain', this); updateAdminStats();">
+            <i class="fa-solid fa-chart-line"></i> Admin Dashboard
+        </div>
+        <div class="nav-item hidden" id="navInventory" onclick="showSection('adminInventorySection', this); loadAdminInventory();">
+            <i class="fa-solid fa-boxes-stacked"></i> Manage Inventory
+        </div>
+        <div class="nav-item hidden" id="navAdminOrders" onclick="showSection('adminOrdersSection', this)">
+            <i class="fa-solid fa-clipboard-list"></i> Manage Orders
+        </div>
+
+        <div class="nav-item" id="navPets" onclick="showSection('petsSection', this)">
+            <i class="fa-solid fa-dog"></i> My Pets
+        </div>
+
+        <div class="nav-item" id="navOwnerAppts" onclick="showSection('appointmentsSection', this)">
+            <i class="fa-solid fa-calendar-check"></i> Appointments
+        </div>
+
+        <div class="nav-item" id="navFindVets" onclick="showSection('vetsSection', this)">
+            <i class="fa-solid fa-user-doctor"></i> Find Vets
+        </div>
+
+        <div class="nav-item" id="navMarketplace" onclick="showSection('marketplaceSection', this)">
+            <i class="fa-solid fa-store"></i> Marketplace
+        </div>
+
+        <div class="nav-item" id="navOrders" onclick="showSection('ordersSection', this); loadOrders();">
+            <i class="fa-solid fa-receipt"></i> My Orders
+        </div>
+
+        <div class="nav-item hidden" id="navSlots" onclick="showSection('slotsSection', this)">
+            <i class="fa-solid fa-clock"></i> Manage Slots
+        </div>
+
+        <div class="nav-item" id="navProfile" onclick="showSection('profileSection', this)">
+            <i class="fa-solid fa-id-badge"></i> My Profile
+        </div>
+
+        <div class="nav-item" onclick="openCartModal()">
+            <i class="fa-solid fa-shopping-cart"></i> View Cart
+            <span id="cartBadge" class="badge bg-danger" style="display: none;">0</span>
+        </div>
+
+        <div class="nav-item" style="margin-top:auto; color:#ff6b6b;" onclick="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <div>
+                <h2 id="pageHeaderTitle" style="margin:0; font-size:1.8rem; color:var(--dark);">Dashboard</h2>
+                <p style="margin:5px 0 0; color:#888; font-size:0.9rem;">Welcome back to PawTrack</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; background:white; padding:8px 20px; border-radius:50px; box-shadow: var(--shadow);">
+                <img src="" id="headerAvatar" style="width:40px; height:40px; border-radius:50%; object-fit:cover;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
+                <span id="headerName" style="font-weight:700; font-size:0.95rem; color:var(--dark);">User</span>
+            </div>
+        </div>
+
+        <div id="marketplaceSection" class="content-section hidden">
+            <div style="background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: var(--shadow);">
+                <div class="row g-3" style="display: flex; gap: 15px;">
+                    <div style="flex: 2;">
+                        <input type="text" id="mktSearch" class="form-control" placeholder="Search products..." onkeyup="loadMarketplace()">
+                    </div>
+                    <div style="flex: 1;">
+                        <select id="mktCategory" class="form-control" onchange="applyMarketplaceFilters()">
+                            <option value="All">All Categories</option>
+                            <option value="Food">Food</option>
+                            <option value="Toys">Toys</option>
+                            <option value="Medicine">Medicine</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <input type="number" id="mktMaxPrice" class="form-control" placeholder="Max Price" onchange="applyMarketplaceFilters()">
+                    </div>
+                </div>
+            </div>
+            <div id="productGrid" class="pets-grid"></div>
+        </div>
+        <div id="adminDashboardMain" class="content-section hidden">
+            <div class="modern-grid" style="margin-bottom: 30px;">
+                <div class="info-box" style="background: linear-gradient(135deg, #6C63FF, #845ef7); color: white; border: none; padding: 30px; position: relative; overflow: hidden;">
+                    <div style="font-size: 2.5rem; font-weight: 800;" id="adminTotalRevenue">₹0</div>
+                    <div style="font-size: 1rem; opacity: 0.9;">Total Revenue</div>
+                    <i class="fa-solid fa-indian-rupee-sign" style="position: absolute; right: 20px; bottom: 20px; font-size: 4rem; opacity: 0.2;"></i>
+                </div>
+                <div class="info-box" style="background: linear-gradient(135deg, #00b894, #00cec9); color: white; border: none; padding: 30px; position: relative; overflow: hidden;">
+                    <div style="font-size: 2.5rem; font-weight: 800;" id="adminTotalOrders">0</div>
+                    <div style="font-size: 1rem; opacity: 0.9;">Total Orders Done</div>
+                    <i class="fa-solid fa-cart-check" style="position: absolute; right: 20px; bottom: 20px; font-size: 4rem; opacity: 0.2;"></i>
+                </div>
+            </div>
+
+            <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--shadow); margin-bottom: 30px;">
+                <h3 style="color: var(--dark); margin-bottom: 20px; font-size: 1.3rem;">📈 Weekly Orders Report</h3>
+                <div style="height: 350px; position: relative;">
+                    <canvas id="adminWeeklyChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div id="adminInventorySection" class="content-section hidden container mt-4">
+            <div class="card shadow border-0" style="border-radius: 20px;">
+                <div class="card-header bg-dark text-white" style="border-radius: 20px 20px 0 0; padding: 15px 25px;">
+                    <h4 class="mb-0"><i class="fas fa-user-shield"></i> Inventory Management</h4>
+                </div>
+                <div class="card-body" style="padding: 25px;">
+                    <h5 class="mb-3">Add New Product</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6"><input type="text" id="pTitle" class="form-control" placeholder="Product Name"></div>
+                        <div class="col-md-3"><input type="number" id="pPrice" class="form-control" placeholder="Price (INR)"></div>
+                        <div class="col-md-3">
+                            <select id="pCategory" class="form-select">
+                                <option value="Food">Food</option>
+                                <option value="Toys">Toys</option>
+                                <option value="Medicine">Medicine</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6"><input type="text" id="pImgUrl" class="form-control" placeholder="Image URL"></div>
+                        <div class="col-md-6"><input type="number" id="pStock" class="form-control" placeholder="Stock Quantity"></div>
+                        <div class="col-12"><textarea id="pDesc" class="form-control" placeholder="Product Description"></textarea></div>
+                        <div class="col-12 text-end">
+                            <button class="btn btn-primary" onclick="saveProduct()">
+                                <i class="fas fa-save"></i> Save Product
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr class="my-5">
+                    <h5 class="mb-3"><i class="fa-solid fa-list-check"></i> Current Inventory</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover bg-white rounded shadow-sm">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody id="adminProductTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="adminOrdersSection" class="content-section hidden">
+            <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--shadow);">
+                <h3 style="margin-bottom: 25px; font-weight: 800; color: var(--dark);">
+                    <i class="fa-solid fa-truck-ramp-box text-primary"></i> Live Order Management
+                </h3>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Order Detail</th>
+                            <th>Items Preview</th>
+                            <th>Status Control</th>
+                            <th>Total</th>
+                        </tr>
+                        </thead>
+                        <tbody id="adminOrdersTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="homeSection" class="content-section">
+            <div class="modern-grid" style="margin-bottom: 30px;">
+
+                <div id="ownerCard1" class="info-box" style="background: linear-gradient(135deg, #6C63FF, #845ef7); color: white; border: none; padding: 30px;">
+                    <div style="font-size: 2.5rem; font-weight: 800;" id="dashTotalPets">0</div>
+                    <div style="font-size: 1rem; opacity: 0.9;">Total Pets</div>
+                    <i class="fa-solid fa-dog" style="position: absolute; right: 20px; bottom: 20px; font-size: 4rem; opacity: 0.2;"></i>
+                </div>
+
+                <div id="ownerCard2" class="info-box" style="background: linear-gradient(135deg, #00b894, #00cec9); color: white; border: none; padding: 30px;">
+                    <div style="font-size: 2.5rem; font-weight: 800;" id="dashUpcoming">0</div>
+                    <div style="font-size: 1rem; opacity: 0.9;">Upcoming Alerts</div>
+                    <i class="fa-solid fa-bell" style="position: absolute; right: 20px; bottom: 20px; font-size: 4rem; opacity: 0.2;"></i>
+                </div>
+
+                <div id="vetCard1" class="info-box hidden" style="background: linear-gradient(135deg, #6C63FF, #845ef7); color: white; border: none; padding: 30px;">
+                    <div style="font-size: 2.5rem; font-weight: 800;" id="vetInClinicCount">0</div>
+                    <div style="font-size: 1rem; opacity: 0.9;">Today's In-Clinic</div>
+                    <i class="fa-solid fa-house-chimney-medical" style="position: absolute; right: 20px; bottom: 20px; font-size: 4rem; opacity: 0.2;"></i>
+                </div>
+
+                <div id="vetCard2" class="info-box hidden" style="background: linear-gradient(135deg, #0984e3, #74b9ff); color: white; border: none; padding: 30px;">
+                    <div style="font-size: 2.5rem; font-weight: 800;" id="vetTeleCount">0</div>
+                    <div style="font-size: 1rem; opacity: 0.9;">Today's Teleconsult</div>
+                    <i class="fa-solid fa-video" style="position: absolute; right: 20px; bottom: 20px; font-size: 4rem; opacity: 0.2;"></i>
+                </div>
+            </div>
+
+            <div id="vetChartSection" class="hidden" style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--shadow); margin-bottom: 30px;">
+                <h3 style="color: var(--dark); margin-bottom: 20px; font-size: 1.3rem;">📈 Weekly Appointment Load</h3>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="vetAppointmentChart"></canvas>
+                </div>
+            </div>
+
+            <h3 id="listHeader" style="color: var(--dark); margin-bottom: 20px; font-size: 1.3rem;">📅 Upcoming Reminders</h3>
+            <div id="reminderList">
+            </div>
+        </div>
+        <div id="profileSection" class="content-section hidden">
+            <div class="profile-card">
+                <div class="profile-banner"></div>
+                <div class="profile-header-content">
+                    <div class="avatar-container"><img src="" id="viewPhoto" class="avatar-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'"></div>
+                    <button onclick="enableEdit()" class="edit-btn-floating"><i class="fa-solid fa-pen-to-square"></i> Edit Profile</button>
+                </div>
+                <div class="profile-body">
+                    <div id="viewMode">
+                        <div class="user-identity">
+                            <h1 class="user-name-large"><span id="viewName">User Name</span><i class="fa-solid fa-circle-check" style="color:#38b6ff; font-size:1.2rem; margin-left:10px;"></i></h1>
+                            <p id="viewEmail" class="user-email-text">email@example.com</p>
+                        </div>
+                        <div class="modern-grid">
+                            <div class="info-box"><div class="info-icon"><i class="fa-solid fa-phone"></i></div><div class="info-label">Phone</div><div class="info-value" id="viewPhone">-</div></div>
+                            <div id="viewOwnerArea" class="info-box hidden"><div class="info-icon"><i class="fa-solid fa-location-dot"></i></div><div class="info-label">Address</div><div class="info-value" id="viewAddress">-</div></div>
+                            <div id="viewVetArea" class="hidden" style="display:contents;">
+                                <div class="info-box"><div class="info-icon"><i class="fa-solid fa-user-doctor"></i></div><div class="info-label">Spec</div><div class="info-value" id="viewSpec">-</div></div>
+                                <div class="info-box"><div class="info-icon"><i class="fa-solid fa-hospital"></i></div><div class="info-label">Clinic</div><div class="info-value" id="viewClinic">-</div></div>
+                                <div class="info-box" style="grid-column: span 2;"><div class="info-icon"><i class="fa-solid fa-map-location-dot"></i></div><div class="info-label">Clinic Address</div><div class="info-value" id="viewClinicAddr">-</div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="editMode" class="hidden form-overlay">
+                        <h3 style="margin-top:0; color:var(--dark);">Edit Profile</h3>
+                        <div class="upload-box"><i class="fa-solid fa-cloud-arrow-up" style="font-size:2rem; color:var(--primary);"></i><p>Upload new photo</p><input type="file" id="fileInput" accept="image/*" style="display:block; margin:0 auto; opacity:0.7;"><button type="button" class="btn btn-danger" onclick="removePhoto()" style="width:auto; margin-top:15px;"><i class="fa-solid fa-trash"></i> Remove Photo</button></div>
+                        <div class="modern-grid" style="margin-top:20px;">
+                            <div class="input-group"><i class="fa-solid fa-user"></i><input type="text" id="editName" placeholder="Full Name"></div>
+                            <div class="input-group"><i class="fa-solid fa-phone"></i><input type="text" id="editPhone" placeholder="Phone"></div>
+                            <div id="editOwnerArea" class="hidden input-group" style="grid-column: span 2;"><i class="fa-solid fa-location-dot"></i><input type="text" id="editAddress" placeholder="Full Address"></div>
+                            <div id="editVetArea" class="hidden" style="grid-column: span 2; display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                                <div class="input-group"><i class="fa-solid fa-stethoscope"></i><input type="text" id="editSpec" placeholder="Specialization"></div>
+                                <div class="input-group"><i class="fa-solid fa-hospital"></i><input type="text" id="editClinic" placeholder="Clinic Name"></div>
+                                <div class="input-group" style="grid-column: span 2;"><i class="fa-solid fa-map-pin"></i><input type="text" id="editClinicAddr" placeholder="Clinic Address"></div>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:15px; margin-top:20px;"><button class="btn btn-primary" onclick="saveProfile()" style="flex:1;">Save Changes</button><button class="btn btn-outline" onclick="disableEdit()" style="flex:1;">Cancel</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="petsSection" class="content-section hidden">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div class="input-group" style="width: 300px; margin-bottom: 0;">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" id="petSearchInput" placeholder="Search pets..." onkeyup="filterPets()">
+                </div>
+                <button class="btn btn-primary" onclick="showAddPetForm()">
+                    <i class="fa-solid fa-plus"></i> Add Pet
+                </button>
+            </div>
+
+            <div id="addPetForm" class="hidden form-overlay">
+                <h4 style="margin-top:0; color:var(--dark);" id="petFormTitle">Add a New Pet</h4>
+                <div class="upload-box">
+                    <i class="fa-solid fa-camera" style="font-size:2rem; color:var(--primary);"></i>
+                    <p>Upload Pet Photo</p>
+                    <input type="file" id="petPhotoInput" accept="image/*" style="margin:0 auto; display:block;">
+                </div>
+                <div class="modern-grid" style="margin-top:20px;">
+                    <div class="input-group"><i class="fa-solid fa-tag"></i><input type="text" id="petName" placeholder="Pet Name *"></div>
+                    <div class="input-group"><i class="fa-solid fa-paw"></i><select id="petSpecies"><option value="Dog">Dog</option><option value="Cat">Cat</option><option value="Other">Other</option></select></div>
+                    <div class="input-group"><i class="fa-solid fa-dna"></i><input type="text" id="petBreed" placeholder="Breed"></div>
+                    <div class="input-group"><i class="fa-solid fa-venus-mars"></i><select id="petGender"><option value="Male">Male</option><option value="Female">Female</option></select></div>
+                    <div class="input-group"><i class="fa-solid fa-cake-candles"></i><input type="date" id="petDOB"></div>
+                    <div class="input-group"><i class="fa-solid fa-microchip"></i><input type="text" id="petMicrochip" placeholder="Microchip ID"></div>
+                    <div class="input-group" style="grid-column: span 2;"><textarea id="petNotes" placeholder="Notes (Allergies, habits...)" rows="3"></textarea></div>
+                </div>
+                <div style="display:flex; gap:15px; margin-top:20px;">
+                    <button class="btn btn-primary" onclick="savePet()" style="flex:1;" id="savePetBtn">Save Pet</button>
+                    <button class="btn btn-outline" onclick="hideAddPetForm()" style="flex:1;">Cancel</button>
+                </div>
+            </div>
+
+            <div id="petsGrid" class="pets-grid"></div>
+            <div id="noPetsMsg" style="text-align:center; padding:40px; color:#aaa; display:none;">
+                <i class="fa-solid fa-dog" style="font-size:3rem; margin-bottom:15px; opacity:0.5;"></i>
+                <p>No pets found. Add your first pet!</p>
+            </div>
+        </div>
+
+        <div id="vetsSection" class="content-section hidden">
+            <div style="background: white; padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #eee;">
+                <h4 style="margin-top:0;">Search Veterinarians</h4>
+                <div style="display: flex; gap: 10px;">
+                    <div class="input-group" style="flex:1; margin:0;">
+                        <i class="fa-solid fa-user-doctor"></i>
+                        <input type="text" id="vetSearchSpec" placeholder="Specialty (e.g. Surgeon, Dentist)" onkeyup="filterVets()">
+                    </div>
+
+                    <div class="input-group" style="flex:1; margin:0;">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <select id="vetSearchLoc" onchange="filterVets()">
+                            <option value="All">All Locations</option>
+                            <option value="Bhopal">Bhopal</option>
+                            <option value="Indore">Indore</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Delhi">Delhi</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="vetsList"></div>
+        </div>
+
+        <div id="appointmentsSection" class="content-section hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin:0;">My Appointments</h3>
+                <button class="btn btn-outline" style="cursor:not-allowed; opacity:0.6;">+ Book New (M3)</button>
+            </div>
+            <div id="appointmentsList">
+                <p style="text-align:center; color:#888;">No upcoming appointments.</p>
+            </div>
+        </div>
+        <div id="slotsSection" class="content-section hidden">
+            <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 25px;">
+                <h3 style="margin-top:0; color:var(--dark);">Create Availability Slot</h3>
+                <div class="modern-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="input-group"><label style="font-size:0.8rem; font-weight:700;">Date</label><input type="date" id="slotDate"></div>
+                    <div class="input-group"><label style="font-size:0.8rem; font-weight:700;">Start Time</label><input type="time" id="slotStart"></div>
+                    <div class="input-group"><label style="font-size:0.8rem; font-weight:700;">End Time</label><input type="time" id="slotEnd"></div>
+                    <div class="input-group"><label style="font-size:0.8rem; font-weight:700;">Mode</label><select id="slotType"><option value="BOTH">Both</option><option value="IN_CLINIC">In-Clinic Only</option><option value="TELECONSULT">Video Call Only</option></select></div>
+                    <div class="input-group"><label style="font-size:0.8rem; font-weight:700;">Capacity (Pets)</label><input type="number" id="slotCapacity" value="10"></div>
+                    <div style="display:flex; align-items:flex-end;"><button class="btn btn-primary" style="width:100%; height:52px;" onclick="createSlot()">Create Slot</button></div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom:15px;">My Active Slots</h3>
+            <div id="slotsList" class="modern-grid">
+            </div>
+        </div>
+        <div id="ordersSection" class="content-section hidden">
+            <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: var(--shadow);">
+                <h3 style="margin-bottom: 25px; font-weight: 800; color: var(--dark);">
+                    <i class="fa-solid fa-box text-primary"></i> My Order History
+                </h3>
+                <div id="ordersListContainer" class="row g-3">
+                    <p class="text-muted text-center">Loading your orders...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="viewPetModal" class="hidden modal-backdrop">
+    <div class="modal-content" style="max-width: 700px; border-radius: 24px;">
+        <div class="scrollable-body" style="padding: 0 0 40px; overflow-y: auto;">
+            <div style="position: relative;">
+                <div class="profile-banner" style="height: 120px;"></div>
+                <button onclick="closeViewPetModal()" style="position: absolute; right: 15px; top: 15px; background: rgba(0,0,0,0.2); border: none; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; z-index: 20;">&times;</button>
+            </div>
+            <div style="padding: 0 40px; margin-top: -60px; position: relative; display: flex; align-items: flex-end; gap: 20px;">
+                <img id="detailPhoto" src="" class="avatar-large" style="width: 120px; height: 120px; border-width: 5px;">
+                <div style="padding-bottom: 15px;">
+                    <h1 id="detailName" style="margin: 0; font-size: 2rem; color: var(--dark);">Pet Name</h1>
+                    <span id="detailBreed" style="background: #eee; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; color: #666; display: inline-block; margin-top: 5px;">Breed</span>
+                </div>
+            </div>
+            <div class="profile-body" style="padding: 30px 40px 0;">
+                <div class="modern-grid">
+                    <div class="info-box"><div class="info-icon"><i class="fa-solid fa-paw"></i></div><div class="info-label">Species</div><div class="info-value" id="detailSpecies">-</div></div>
+                    <div class="info-box"><div class="info-icon"><i class="fa-solid fa-venus-mars"></i></div><div class="info-label">Gender</div><div class="info-value" id="detailGender">-</div></div>
+                    <div class="info-box"><div class="info-icon"><i class="fa-solid fa-cake-candles"></i></div><div class="info-label">Date of Birth</div><div class="info-value" id="detailDOB">-</div></div>
+                    <div class="info-box"><div class="info-icon"><i class="fa-solid fa-microchip"></i></div><div class="info-label">Microchip ID</div><div class="info-value" id="detailMicrochip">-</div></div>
+                    <div class="info-box" style="grid-column: span 2; min-height: 80px;"><div class="info-icon"><i class="fa-solid fa-note-sticky"></i></div><div class="info-label">Notes</div><div class="info-value" id="detailNotes" style="font-weight: normal; font-size: 1rem; line-height: 1.6; white-space: pre-wrap;">-</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="viewProductModal" class="hidden modal-backdrop">
+    <div class="modal-content" style="max-width: 700px; border-radius: 24px;">
+        <div class="scrollable-body" style="padding: 0 0 40px; overflow-y: auto;">
+            <div style="position: relative;">
+                <div class="profile-banner" style="height: 120px; background: linear-gradient(45deg, var(--primary), var(--secondary));"></div>
+                <button onclick="closeProductModal()" style="position: absolute; right: 15px; top: 15px; background: rgba(0,0,0,0.2); border: none; color: white; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; z-index: 20;">&times;</button>
+            </div>
+            <div style="padding: 0 40px; margin-top: -60px; position: relative; display: flex; align-items: flex-end; gap: 20px;">
+                <img id="pDetailImg" src="" class="avatar-large" style="width: 120px; height: 120px; border-width: 5px; border-radius: 15px; object-fit: cover;">
+                <div style="padding-bottom: 15px;">
+                    <h1 id="pDetailTitle" style="margin: 0; font-size: 2rem; color: var(--dark);">Product Name</h1>
+                    <span id="pDetailCat" style="background: #eee; padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; color: #666; display: inline-block; margin-top: 5px;">Category</span>
+                </div>
+            </div>
+            <div class="profile-body" style="padding: 30px 40px 0;">
+                <div class="modern-grid">
+                    <div class="info-box"><div class="info-icon"><i class="fa-solid fa-tag"></i></div><div class="info-label">Price</div><div class="info-value" id="pDetailPrice">₹0</div></div>
+                    <div class="info-box"><div class="info-icon"><i class="fa-solid fa-boxes-stacked"></i></div><div class="info-label">Availability</div><div class="info-value" id="pDetailStock">In Stock</div></div>
+                    <div class="info-box" style="grid-column: span 2; min-height: 100px;"><div class="info-icon"><i class="fa-solid fa-circle-info"></i></div><div class="info-label">Description</div><div class="info-value" id="pDetailDesc" style="font-weight: normal; font-size: 1rem; line-height: 1.6; white-space: pre-wrap;">-</div></div>
+                </div>
+                <button class="btn btn-primary w-100 mt-4" id="pDetailCartBtn">Add to Cart Now</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="cartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 25px; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.3); overflow: hidden;">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--primary), #845ef7); color: white; padding: 20px 30px;">
+                <h4 class="modal-title"><i class="fa-solid fa-shopping-bag"></i> Checkout Dashboard</h4>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="padding: 0; background: #fdfdfd;">
+                <div class="row g-0">
+                    <div class="col-md-6" style="padding: 30px; border-right: 1px solid #eee; max-height: 550px; overflow-y: auto;">
+                        <h5 style="font-weight: 800; margin-bottom: 25px;">Items in your bag</h5>
+                        <div id="cartItemsList"></div> </div>
+
+                    <div class="col-md-6" style="padding: 35px; background: #fcfcfc;">
+                        <h5 style="font-weight: 800; margin-bottom: 25px; color: var(--dark);">
+                            <i class="fa-solid fa-truck-fast text-primary me-2"></i> Shipping Details
+                        </h5>
+
+                        <div id="addressSuggestions" class="mb-4"></div>
+
+                        <div class="row g-3">
+                            <div class="col-12 checkout-form-group">
+                                <label class="small fw-bold text-muted text-uppercase mb-1">House / Flat / Building</label>
+                                <input type="text" id="shipHouse" class="form-control" placeholder="e.g. 402, Green Heights">
+                            </div>
+                            <div class="col-12 checkout-form-group">
+                                <label class="small fw-bold text-muted text-uppercase mb-1">Street / Area / Landmark</label>
+                                <input type="text" id="shipArea" class="form-control" placeholder="e.g. Near Arera Colony">
+                            </div>
+                            <div class="col-6 checkout-form-group">
+                                <label class="small fw-bold text-muted text-uppercase mb-1">City</label>
+                                <input type="text" id="shipCity" class="form-control" placeholder="e.g. Bhopal">
+                            </div>
+                            <div class="col-6 checkout-form-group">
+                                <label class="small fw-bold text-muted text-uppercase mb-1">Pincode</label>
+                                <input type="number" id="shipPin" class="form-control" placeholder="462001">
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 30px; padding: 25px; background: white; border-radius: 20px; border: 1px solid #f0f0f0; box-shadow: 0 5px 15px rgba(0,0,0,0.02);">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <span class="text-muted fw-bold">Grand Total:</span>
+                                <span id="checkoutTotal" style="font-size: 1.8rem; font-weight: 900; color: var(--primary);">₹0</span>
+                            </div>
+
+                            <h6 style="font-weight: 800; color: var(--dark); margin-bottom: 15px;">Select Payment Method:</h6>
+                            <div class="payment-method-container mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="payCOD" value="COD" checked>
+                                    <label class="form-check-label fw-bold" for="payCOD">
+                                        <i class="fa-solid fa-truck-fast text-success me-2"></i> Cash on Delivery (COD)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="payOnline" value="ONLINE">
+                                    <label class="form-check-label fw-bold" for="payOnline">
+                                        <i class="fa-solid fa-credit-card text-primary me-2"></i> Online Payment (Razorpay)
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary w-100 py-3 fw-800" style="border-radius: 15px; font-size: 1.1rem;" onclick="processCheckout()">
+                                Proceed to Payment <i class="fa-solid fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="healthModal" class="hidden modal-backdrop">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="margin:0;" id="healthModalTitle">Health History</h3>
+            <button onclick="closeHealthModal()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="display:flex; gap:10px; margin-bottom:20px;">
+                <button class="btn btn-primary" onclick="showAddRecordForm()" style="flex:1;">+ Add Record</button>
+                <button class="btn btn-outline" onclick="showHistoryList()" style="flex:1;">View History</button>
+            </div>
+
+            <div id="addRecordForm" class="hidden">
+                <div class="input-group"><i class="fa-solid fa-list"></i><select id="recType" onchange="toggleFields()"><option value="MEDICAL">Medical Visit</option><option value="VACCINE">Vaccination</option></select></div>
+                <div class="input-group"><i class="fa-solid fa-calendar"></i><input type="date" id="recDate"></div>
+                <div class="input-group"><i class="fa-solid fa-user-doctor"></i><input type="text" id="recVet" placeholder="Vet Name"></div>
+                <div id="medicalFields">
+                    <div class="input-group"><input type="text" id="recDiagnosis" placeholder="Diagnosis (e.g. Fever)"></div>
+                    <div class="input-group"><input type="text" id="recTreatment" placeholder="Treatment Given"></div>
+                    <div class="input-group"><input type="text" id="recPrescription" placeholder="Prescription / Medicines"></div>
+                </div>
+                <div id="vaccineFields" class="hidden">
+                    <div class="input-group"><input type="text" id="recVaccine" placeholder="Vaccine Name (e.g. Rabies)"></div>
+                    <div class="input-group"><label style="font-size:0.8rem; margin-left:10px;">Next Due Date:</label><input type="date" id="recNextDue"></div>
+                    <div class="input-group"><label style="font-size:0.8rem; margin-left:10px;">Repeat:</label><select id="recRepeat" style="border:none; background:transparent; width:100%; outline:none;"><option value="NONE">No Repeat</option><option value="MONTHLY">Monthly</option><option value="YEARLY">Yearly</option></select></div>
+                </div>
+                <div class="input-group"><textarea id="recNotes" placeholder="Additional Notes..." rows="2"></textarea></div>
+                <button class="btn btn-primary" style="width:100%;" onclick="saveHealthRecord()">Save Record</button>
+            </div>
+
+            <div id="historyList">
+                <div class="filter-bar">
+                    <select id="filterType" onchange="applyMedicalFilters()"><option value="ALL">All Records</option><option value="VACCINE">Vaccinations Only</option><option value="MEDICAL">Medical Only</option></select>
+                    <input type="date" id="filterStart" onchange="applyMedicalFilters()">
+                    <input type="date" id="filterEnd" onchange="applyMedicalFilters()">
+                </div>
+                <div id="recordsContainer"><p style="text-align:center; color:#888;">Loading...</p></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="vitalsModal" class="hidden modal-backdrop">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="margin:0;">Health Trends</h3>
+            <button onclick="closeVitalsModal()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div style="background: #f0f7ff; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <h4 style="margin-top:0; color:var(--primary);">Add Measurement</h4>
+                <div style="display:flex; gap:10px; margin-bottom: 10px;">
+                    <input type="date" id="vitalDate" style="flex:1;">
+                    <input type="number" id="vitalWeight" placeholder="Weight (kg)" style="flex:1;">
+                    <input type="number" id="vitalTemp" placeholder="Temp (°C)" style="flex:1;">
+                </div>
+                <div style="margin-bottom: 10px;"><input type="text" id="vitalNotes" placeholder="Notes" style="width:100%;"></div>
+                <button class="btn btn-primary btn-sm" style="width:100%;" onclick="saveVital()">+ Add Data</button>
+            </div>
+            <div style="height: 300px; position: relative;"><canvas id="vitalsChart"></canvas></div>
+        </div>
+    </div>
+</div>
+
+
+<div id="bookingModal" class="hidden modal-backdrop">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3 style="margin:0;">Book Appointment</h3>
+            <button onclick="document.getElementById('bookingModal').classList.add('hidden')" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="bookVetId">
+
+            <div style="margin-bottom:15px;">
+                <label style="font-weight:700; display:block; margin-bottom:5px;">Select Date</label>
+                <input type="date" id="bookDate" onchange="checkSlotsForDate()" style="width:100%;">
+            </div>
+
+            <div id="slotSelectionArea" class="hidden">
+                <p style="font-weight:700; margin-bottom:10px;">Available Slots:</p>
+                <div id="availableSlotsContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
+            </div>
+
+            <div id="finalBookingForm" class="hidden" style="margin-top:20px; border-top:1px solid #eee; padding-top:20px;">
+                <div class="input-group">
+                    <label style="font-size:0.8rem;">Select Pet</label>
+                    <select id="bookPetId" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;"></select>
+                </div>
+                <div class="input-group">
+                    <label style="font-size:0.8rem;">Consultation Type</label>
+                    <select id="bookType" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc;"><option value="IN_CLINIC">In-Clinic Visit</option><option value="TELECONSULT">Video Call</option></select>
+                </div>
+                <div class="input-group"><input type="text" id="bookReason" placeholder="Reason (e.g. Fever)"></div>
+                <button class="btn btn-primary" style="width:100%" onclick="confirmBooking()">Confirm Booking</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="orderDetailModal" class="hidden modal-backdrop">
+    <div class="modal-content" style="max-width: 600px; border-radius: 25px;">
+        <div class="modal-header" style="background: var(--primary); color: white;">
+            <h4 style="margin:0;"><i class="fa-solid fa-file-invoice"></i> Order Details</h4>
+            <button onclick="closeOrderDetailModal()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        <div class="modal-body" id="orderDetailContent">
+        </div>
+    </div>
+</div>
+
+<script>
+    const BASE_URL = "http://localhost:8080";
+    let currentEditingProductId = null;
+    let isRegister = false;
+    let currentPhoto = "";
+    let currentPetId = null;
+    let currentUserRole = "";
+    let editingPetId = null;
+
+    let userEmail = localStorage.getItem("pawtrack_email") || "";
+    let currentUserId = null;
+
+    const DEFAULT_IMG = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+    let myChart = null;
+    let globalPets = [];
+    let globalHealthRecords = [];
+
+
+
+    function toggleAuth() {
+        isRegister = !isRegister;
+        document.getElementById("authTitle").innerText = isRegister ? "Create Account" : "Welcome Back";
+        document.getElementById("toggleBtn").innerText = isRegister ? "Already have an account? Login" : "Create Account";
+        const roleDiv = document.getElementById("roleDiv");
+        if (isRegister) roleDiv.classList.remove("hidden"); else roleDiv.classList.add("hidden");
+    }
+
+    async function sendOtp() {
+        const email = document.getElementById("emailInput").value;
+        const role = document.getElementById("roleInput").value;
+        const msgBox = document.getElementById("msgBox");
+        const btn = document.querySelector('#formSection .btn-primary');
+        const originalBtnText = btn.innerHTML;
+        if(!email) { msgBox.style.color = "red"; msgBox.innerText = "Please Enter Email"; return; }
+
+        btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sending...';
+        try {
+            const res = await fetch(`${BASE_URL}/auth/send-otp`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, role, requestType: isRegister ? "REGISTER" : "LOGIN" }) });
+            if(res.ok) {
+                userEmail = email; msgBox.style.color = "green"; msgBox.innerText = "✅ OTP Sent Successfully!";
+                setTimeout(() => { document.getElementById("formSection").classList.add("hidden"); document.getElementById("otpSection").classList.remove("hidden"); msgBox.innerText = ""; }, 1000);
+            } else { const txt = await res.text(); msgBox.style.color = "red"; msgBox.innerText = "❌ " + txt; }
+        } catch(e) { msgBox.style.color = "red"; msgBox.innerText = "❌ Server Error."; } finally { btn.disabled = false; btn.innerHTML = originalBtnText; }
+    }
+
+    async function verifyOtp() {
+        try {
+            const res = await fetch(`${BASE_URL}/auth/verify-otp`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: userEmail, otp: document.getElementById("otpInput").value }) });
+            if(res.ok) {
+                const token = await res.text();
+                localStorage.setItem("jwt_token", token);
+                localStorage.setItem("pawtrack_email", userEmail);
+                loadDashboard(token);
+            } else { alert("❌ Invalid OTP"); }
+        } catch(e) { alert("Error verifying OTP"); }
+    }
+
+function handleLoginSuccess(user) {
+    localStorage.setItem("role", user.role);
+    localStorage.setItem("userId", user.id);
+    localStorage.setItem("jwt_token", user.token);
+
+    document.getElementById('ownerDashboard').style.display = 'none';
+    document.getElementById('adminDashboard').style.display = 'none';
+
+    if (user.role === 'ADMIN') {
+        showSection('adminDashboard');
+        document.getElementById('adminDashboard').style.display = 'block';
+    } else if (user.role === 'OWNER') {
+        showSection('homeSection');
+        loadMarketplace();
+    } else {
+        showSection('homeSection');
+    }
+}
+async function saveProduct() {
+    const token = localStorage.getItem("jwt_token");
+    const productData = {
+        title: document.getElementById('pTitle').value,
+        price: parseFloat(document.getElementById('pPrice').value),
+        category: document.getElementById('pCategory').value,
+        description: document.getElementById('pDesc').value,
+        imageUrl: document.getElementById('pImgUrl').value,
+        stock: parseInt(document.getElementById('pStock').value)
+    };
+
+    if (currentEditingProductId) { productData.id = currentEditingProductId; }
+
+    try {
+        const response = await fetch(`${BASE_URL}/api/products/admin/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(productData)
+        });
+
+        if (response.ok) {
+            alert(currentEditingProductId ? "✅ Updated Successfully!" : "✅ Added Successfully!");
+            currentEditingProductId = null;
+
+            const saveBtn = document.querySelector("#adminInventorySection button.btn-primary");
+            if(saveBtn) saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Product';
+
+            document.querySelectorAll('#adminInventorySection input, #adminInventorySection textarea').forEach(el => el.value = '');
+            loadAdminInventory();
+            return;
+
+            
+        } else {
+            throw new Error("Failed to save");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Error saving product.");
+    }
+}
+async function loadDashboard(token) {
+
+    document.getElementById("authScreen").classList.add("hidden");
+    document.getElementById("dashboardScreen").classList.remove("hidden");
+
+    const res = await fetch(`${BASE_URL}/user/get-profile?email=${userEmail}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if(res.ok) {
+        const data = await res.json();
+        currentUserId = data.id;
+        currentUserRole = data.role;
+        console.log("✅ LOGGED IN! Role:", currentUserRole);
+
+        renderProfile(data);
+
+        const allNavs = ["navHome", "navPets", "navFindVets", "navOwnerAppts", "navMarketplace", "navSlots", "navInventory", "navAdminOrders", "navOrders"];
+        allNavs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add("hidden");
+        });
+
+        if (currentUserRole === "ADMIN") {
+            if(document.getElementById("navAdminDash")) document.getElementById("navAdminDash").classList.remove("hidden");
+            if(document.getElementById("navInventory")) document.getElementById("navInventory").classList.remove("hidden");
+            if(document.getElementById("navAdminOrders")) document.getElementById("navAdminOrders").classList.remove("hidden");
+            if(document.getElementById("navProfile")) document.getElementById("navProfile").classList.remove("hidden");
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if(item.innerText.includes("View Cart") || item.innerText.includes("My Orders")) {
+                    item.classList.add("hidden");
+                }
+            });
+
+            showSection('adminDashboardMain', document.getElementById('navAdminDash'));
+            loadAdminInventory();
+            loadAdminOrders();
+            updateAdminStats();
+
+            if (window.adminSyncInterval) clearInterval(window.adminSyncInterval);
+            window.adminSyncInterval = setInterval(async () => {
+                if (currentUserRole === "ADMIN") {
+                    await loadAdminInventory();
+                    await loadAdminOrders();
+                    await updateAdminStats();
+                }
+            }, 5000);
+        }
+        else if (currentUserRole === "VET") {
+            document.getElementById("ownerCard1").classList.add("hidden");
+            document.getElementById("ownerCard2").classList.add("hidden");
+            document.getElementById("vetCard1").classList.remove("hidden");
+            document.getElementById("vetCard2").classList.add("hidden");
+            document.getElementById("vetChartSection").classList.remove("hidden");
+
+            const vetCardTitle = document.querySelector("#vetCard1 div:nth-child(2)");
+            if(vetCardTitle) vetCardTitle.innerText = "Todays Total Appointments";
+
+            document.getElementById("listHeader").innerText = "👨‍⚕️ Today's Patient Queue";
+
+            ["navHome", "navSlots", "navOwnerAppts", "navProfile"].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.classList.remove("hidden");
+            });
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if(item.innerText.includes("View Cart") || item.innerText.includes("My Orders")) {
+                    item.classList.add("hidden");
+                }
+            });
+
+            loadVetSlots(currentUserId);
+            loadAppointments();
+            showSection('homeSection', document.getElementById('navHome'));
+        }
+        else if (currentUserRole === "OWNER") {
+            document.getElementById("ownerCard1").classList.remove("hidden");
+            document.getElementById("ownerCard2").classList.remove("hidden");
+            document.getElementById("vetCard1").classList.add("hidden");
+            document.getElementById("vetCard2").classList.add("hidden");
+            document.getElementById("vetChartSection").classList.add("hidden");
+            document.getElementById("listHeader").innerText = "📅 Upcoming Reminders";
+
+            ["navHome", "navPets", "navFindVets", "navOwnerAppts", "navMarketplace", "navOrders", "navProfile"].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.classList.remove("hidden");
+            });
+
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if(item.innerText.includes("View Cart")) item.classList.remove("hidden");
+            });
+
+            loadDashboardStats();
+            fetchAndRenderRealVets();
+            loadPets();
+            loadAppointments();
+            loadOrders();
+            showSection('homeSection', document.getElementById('navHome'));
+
+            if (window.mktSyncInterval) clearInterval(window.mktSyncInterval);
+            window.mktSyncInterval = setInterval(async () => {
+                if (currentUserRole === "OWNER") {
+                    await loadMarketplace();
+                    if (document.getElementById('ordersSection').style.display === 'block') {
+                        loadOrders();
+                    }
+                }
+            }, 5000);
+        }
+
+        if (window.appointmentInterval) clearInterval(window.appointmentInterval);
+        let lastApptCount = 0;
+        window.appointmentInterval = setInterval(async () => {
+            await loadAppointments();
+            if (currentUserRole === "VET") {
+                const currentCount = document.querySelectorAll('.appt-card').length;
+                if (lastApptCount > 0 && currentCount > lastApptCount) {
+                    alert("🔔 New Appointment Request Received!");
+                }
+                lastApptCount = currentCount;
+            }
+        }, 15000);
+
+    } else {
+        logout();
+    }
+}
+function startRealTimeUpdates() {
+    if (window.statusInterval) clearInterval(window.statusInterval);
+
+    window.statusInterval = setInterval(() => {
+        console.log("Auto-refreshing appointments...");
+        loadAppointments();
+
+        if (currentUserRole === "VET") {
+            loadVetSlots(currentUserId);
+        }
+    }, 10000); // 10000ms = 10 Seconds
+}
+
+    function renderProfile(data) {
+        document.getElementById("viewName").innerText = data.fullName || "User";
+        document.getElementById("headerName").innerText = data.fullName || "User";
+        document.getElementById("viewEmail").innerText = userEmail;
+        document.getElementById("viewPhone").innerText = data.phone || "-";
+
+        if(data.photoUrl && data.photoUrl !== "default.png" && data.photoUrl !== "") {
+            currentPhoto = data.photoUrl;
+            document.getElementById("viewPhoto").src = BASE_URL + data.photoUrl;
+            document.getElementById("headerAvatar").src = BASE_URL + data.photoUrl;
+        } else {
+            currentPhoto = "";
+            document.getElementById("viewPhoto").src = DEFAULT_IMG;
+            document.getElementById("headerAvatar").src = DEFAULT_IMG;
+        }
+
+        document.getElementById("editName").value = data.fullName || "";
+        document.getElementById("editPhone").value = data.phone || "";
+
+        if(data.role === "VET") {
+            document.getElementById("navPets").classList.add("hidden");
+            document.getElementById("viewVetArea").classList.remove("hidden"); document.getElementById("editVetArea").classList.remove("hidden");
+            document.getElementById("viewSpec").innerText = data.specialization || "-"; document.getElementById("viewClinic").innerText = data.clinicName || "-"; document.getElementById("viewClinicAddr").innerText = data.clinicAddress || "-";
+            document.getElementById("editSpec").value = data.specialization || ""; document.getElementById("editClinic").value = data.clinicName || ""; document.getElementById("editClinicAddr").value = data.clinicAddress || "";
+            document.getElementById("viewOwnerArea").classList.add("hidden"); document.getElementById("editOwnerArea").classList.add("hidden");
+        } else {
+            document.getElementById("navPets").classList.remove("hidden");
+            document.getElementById("viewOwnerArea").classList.remove("hidden"); document.getElementById("editOwnerArea").classList.remove("hidden");
+            document.getElementById("viewAddress").innerText = data.address || "-"; document.getElementById("editAddress").value = data.address || "";
+            document.getElementById("viewVetArea").classList.add("hidden"); document.getElementById("editVetArea").classList.add("hidden");
+        }
+    }
+
+    function showSection(id, el) {
+    document.querySelectorAll('.content-section, #adminDashboard, #marketplaceSection,#ordersSection').forEach(d => {
+        d.classList.add('hidden');
+        d.style.display = 'none';
+    });
+
+    const target = document.getElementById(id);
+    if (target) {
+        target.classList.remove('hidden');
+        target.style.display = 'block';
+    }
+
+
+    let title = "Dashboard";
+    if(id === 'ordersSection') loadOrders();
+    if (id === 'adminDashboard') {
+        title = "Inventory Management";
+        loadAdminInventory();
+    } else if (id === 'profileSection') {
+        title = "My Profile";
+    } else if (id === 'petsSection') {
+        title = "My Pets";
+        loadPets();
+    }
+
+    document.getElementById('pageHeaderTitle').innerText = title;
+
+    if (el) {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+    }
+}
+
+    function removePhoto() { if(confirm("Remove photo?")) { currentPhoto = ""; document.getElementById("fileInput").value = ""; alert("Photo removed! Click Save."); } }
+    function enableEdit() { document.getElementById("viewMode").classList.add("hidden"); document.getElementById("editMode").classList.remove("hidden"); }
+    function disableEdit() { document.getElementById("editMode").classList.add("hidden"); document.getElementById("viewMode").classList.remove("hidden"); }
+
+    async function saveProfile() {
+        const token = localStorage.getItem("jwt_token"); const fileInput = document.getElementById("fileInput");
+        if(fileInput.files.length > 0) { const fd = new FormData(); fd.append("file", fileInput.files[0]); const up = await fetch(`${BASE_URL}/user/upload-photo`, { method: "POST", body: fd }); if(up.ok) currentPhoto = await up.text(); }
+        const isVet = !document.getElementById("editVetArea").classList.contains("hidden");
+        const data = { email: userEmail, fullName: document.getElementById("editName").value, phone: document.getElementById("editPhone").value, photoUrl: currentPhoto };
+        if(isVet) { data.specialization = document.getElementById("editSpec").value; data.clinicName = document.getElementById("editClinic").value; data.clinicAddress = document.getElementById("editClinicAddr").value; } else { data.address = document.getElementById("editAddress").value; }
+        const res = await fetch(`${BASE_URL}/user/update-profile`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }, body: JSON.stringify(data) });
+        if(res.ok) { alert("Saved!"); disableEdit(); loadDashboard(token); } else { alert("Failed"); }
+    }
+
+    function showAddPetForm() {
+        editingPetId = null;
+        document.getElementById("petFormTitle").innerText = "Add a New Pet";
+        document.getElementById("savePetBtn").innerText = "Save Pet";
+        document.getElementById("petName").value = "";
+        document.getElementById("addPetForm").classList.remove("hidden");
+    }
+    function showCorrectDashboard(role) {
+
+    document.getElementById('ownerDashboard').style.display = 'none';
+    document.getElementById('vetDashboard').style.display = 'none';
+    document.getElementById('adminDashboard').style.display = 'none';
+
+
+    if (role === 'ADMIN') {
+        document.getElementById('adminDashboard').style.display = 'block';
+    } else if (role === 'VET') {
+        document.getElementById('vetDashboard').style.display = 'block';
+    } else {
+        document.getElementById('ownerDashboard').style.display = 'block';
+    }
+}
+
+    async function openEditPetForm(petId) {
+        editingPetId = petId;
+        const pet = globalPets.find(p => p.id === petId);
+        if(!pet) return;
+        document.getElementById("petFormTitle").innerText = "Edit Pet Details";
+        document.getElementById("savePetBtn").innerText = "Update Pet";
+        document.getElementById("petName").value = pet.name || "";
+        document.getElementById("petSpecies").value = pet.species || "Dog";
+        document.getElementById("petBreed").value = pet.breed || "";
+        document.getElementById("petGender").value = pet.gender || "Male";
+        document.getElementById("petDOB").value = pet.dateOfBirth || "";
+        document.getElementById("petMicrochip").value = pet.microchipId || "";
+        document.getElementById("petNotes").value = pet.notes || "";
+        document.getElementById("addPetForm").classList.remove("hidden");
+        document.getElementById("addPetForm").scrollIntoView({behavior: "smooth"});
+    }
+
+    function hideAddPetForm() { document.getElementById("addPetForm").classList.add("hidden"); }
+
+    async function savePet() {
+        const token = localStorage.getItem("jwt_token"); const photoInput = document.getElementById("petPhotoInput"); let petPhotoUrl = "default-pet.png";
+        if (editingPetId) { const pet = globalPets.find(p => p.id === editingPetId); if(pet) petPhotoUrl = pet.photoUrl; }
+        if(photoInput.files.length > 0) { const fd = new FormData(); fd.append("file", photoInput.files[0]); const up = await fetch(`${BASE_URL}/user/upload-photo`, { method: "POST", body: fd }); if(up.ok) petPhotoUrl = await up.text(); }
+        const petData = { name: document.getElementById("petName").value, species: document.getElementById("petSpecies").value, breed: document.getElementById("petBreed").value, gender: document.getElementById("petGender").value, dateOfBirth: document.getElementById("petDOB").value, microchipId: document.getElementById("petMicrochip").value, notes: document.getElementById("petNotes").value, photoUrl: petPhotoUrl };
+        let url = `${BASE_URL}/api/pets/add`; let method = "POST";
+        if (editingPetId) { petData.id = editingPetId; url = `${BASE_URL}/api/pets/add`; }
+        const res = await fetch(url, { method: method, headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }, body: JSON.stringify(petData) });
+        if(res.ok) { alert(editingPetId ? "Pet Updated!" : "Pet Added!"); hideAddPetForm(); loadPets(); loadDashboardStats(); } else { alert("Error saving pet"); }
+    }
+
+    async function loadPets() {
+        if (currentUserRole !== "OWNER") { return; }
+        const token = localStorage.getItem("jwt_token"); const res = await fetch(`${BASE_URL}/api/pets/my-pets`, { headers: { "Authorization": `Bearer ${token}` } });
+        if(res.ok) {
+            globalPets = await res.json();
+            renderPets(globalPets);
+        }
+    }
+
+    function renderPets(petsToRender) {
+        const grid = document.getElementById("petsGrid"); grid.innerHTML = "";
+        if(petsToRender.length === 0) { document.getElementById("noPetsMsg").style.display = "block"; return; }
+        document.getElementById("noPetsMsg").style.display = "none";
+        petsToRender.forEach(pet => {
+            const img = (pet.photoUrl && pet.photoUrl !== "default-pet.png") ? BASE_URL + pet.photoUrl : "https://cdn-icons-png.flaticon.com/512/616/616408.png";
+            let buttonsHtml = "";
+            if (currentUserRole === "OWNER") {
+                buttonsHtml = `
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <button class="btn btn-primary btn-sm" onclick="openEditPetForm(${pet.id})" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                    <button class="btn btn-outline btn-sm" onclick="openHealthRecord(${pet.id}, '${pet.name}')" title="History"><i class="fa-solid fa-notes-medical"></i></button>
+                    <button class="btn btn-outline btn-sm" onclick="openVitals(${pet.id})" title="Trends"><i class="fa-solid fa-chart-line"></i></button>
+                    <button class="btn btn-danger btn-sm" onclick="deletePet(${pet.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                </div>`;
+            }
+            grid.innerHTML += `<div class="pet-card">
+                <img src="${img}" class="pet-img" onclick="viewPetProfile(${pet.id})" style="cursor:pointer">
+                <h3 style="margin:0; color:var(--dark); cursor:pointer;" onclick="viewPetProfile(${pet.id})">${pet.name}</h3>
+                <p style="color:#888; font-size:0.9rem; margin:5px 0 15px;">${pet.breed}</p>
+                ${buttonsHtml}
+            </div>`;
+        });
+    }
+
+    function filterPets() {
+        const query = document.getElementById("petSearchInput").value.toLowerCase();
+        const filtered = globalPets.filter(p => p.name.toLowerCase().includes(query) || p.breed.toLowerCase().includes(query) || p.species.toLowerCase().includes(query));
+        renderPets(filtered);
+    }
+
+    async function deletePet(id) { if(confirm("Delete pet?")) { const token = localStorage.getItem("jwt_token"); await fetch(`${BASE_URL}/api/pets/${id}`, { method: "DELETE", headers: { "Authorization": `Bearer ${token}` } }); loadPets(); loadDashboardStats(); } }
+
+    async function viewPetProfile(petId) {
+        const token = localStorage.getItem("jwt_token");
+        try {
+            const res = await fetch(`${BASE_URL}/api/pets/${petId}`, { headers: { "Authorization": `Bearer ${token}` } });
+            if (res.ok) {
+                const pet = await res.json();
+                document.getElementById("detailName").innerText = pet.name;
+                document.getElementById("detailBreed").innerText = pet.breed || "Unknown Mix";
+                document.getElementById("detailSpecies").innerText = pet.species;
+                document.getElementById("detailGender").innerText = pet.gender;
+                document.getElementById("detailDOB").innerText = pet.dateOfBirth || "N/A";
+                document.getElementById("detailMicrochip").innerText = pet.microchipId || "N/A";
+                document.getElementById("detailNotes").innerText = pet.notes || "No notes.";
+                const img = (pet.photoUrl && pet.photoUrl !== "default-pet.png") ? BASE_URL + pet.photoUrl : DEFAULT_IMG;
+                document.getElementById("detailPhoto").src = img;
+                document.getElementById("viewPetModal").classList.remove("hidden");
+            } else { alert("Error fetching details"); }
+        } catch (e) { console.error(e); }
+    }
+    function closeViewPetModal() { document.getElementById("viewPetModal").classList.add("hidden"); }
+
+    async function loadDashboardStats() {
+        if (currentUserRole !== "OWNER") return;
+        const token = localStorage.getItem("jwt_token");
+        try {
+            const res = await fetch(`${BASE_URL}/api/dashboard/stats`, { headers: { "Authorization": `Bearer ${token}` } });
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById("dashTotalPets").innerText = data.totalPets;
+                document.getElementById("dashUpcoming").innerText = data.upcomingCount;
+                const list = document.getElementById("reminderList"); list.innerHTML = "";
+                if (data.reminders.length === 0) {
+                    list.innerHTML = `<div style="text-align:center; padding:30px; background:white; border-radius:15px; border:1px solid #eee;"><i class="fa-solid fa-check-circle" style="color:#00b894; font-size:2rem; margin-bottom:10px;"></i><p style="color:#888; margin:0;">No upcoming alerts. You are all set!</p></div>`;
+                } else {
+                    data.reminders.forEach(rec => {
+                        const diffDays = Math.ceil(Math.abs(new Date(rec.nextDueDate) - new Date()) / (1000 * 60 * 60 * 24));
+                        list.innerHTML += `<div style="background:white; padding:15px; border-radius:12px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; border-left: 5px solid #ff7675; box-shadow: 0 2px 5px rgba(0,0,0,0.02);"><div><div style="font-weight:700; color:var(--dark);">${rec.vaccineName}</div><div style="font-size:0.85rem; color:#888;">Due: ${rec.nextDueDate}</div></div><div style="background:#ffeaea; color:#ff7675; padding:5px 10px; border-radius:20px; font-size:0.75rem; font-weight:700;">In ${diffDays} days</div></div>`;
+                    });
+                }
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    function openHealthRecord(petId, petName) {
+        currentPetId = petId;
+        document.getElementById("healthModalTitle").innerText = `${petName}'s Health`;
+        document.getElementById("healthModal").classList.remove("hidden");
+        showHistoryList();
+    }
+    function closeHealthModal() { document.getElementById("healthModal").classList.add("hidden"); }
+    function showAddRecordForm() { document.getElementById("addRecordForm").classList.remove("hidden"); document.getElementById("historyList").classList.add("hidden"); }
+    function showHistoryList() { document.getElementById("addRecordForm").classList.add("hidden"); document.getElementById("historyList").classList.remove("hidden"); fetchHistory(); }
+    function toggleFields() {
+        if(document.getElementById("recType").value === "VACCINE") { document.getElementById("vaccineFields").classList.remove("hidden"); document.getElementById("medicalFields").classList.add("hidden"); }
+        else { document.getElementById("medicalFields").classList.remove("hidden"); document.getElementById("vaccineFields").classList.add("hidden"); }
+    }
+    async function saveHealthRecord() {
+        const data = {
+            recordDate: document.getElementById("recDate").value, type: document.getElementById("recType").value, vetName: document.getElementById("recVet").value, notes: document.getElementById("recNotes").value,
+            diagnosis: document.getElementById("recDiagnosis").value, treatment: document.getElementById("recTreatment").value, prescription: document.getElementById("recPrescription").value,
+            vaccineName: document.getElementById("recVaccine").value, nextDueDate: document.getElementById("recNextDue").value,
+            repeatFrequency: document.getElementById("recRepeat").value
+        };
+        if(!data.recordDate) { alert("Date is required!"); return; }
+        const res = await fetch(`${BASE_URL}/api/health/add?petId=${currentPetId}`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }, body: JSON.stringify(data) });
+        if(res.ok) { alert("Saved!"); showHistoryList(); loadDashboardStats(); } else { alert("Failed"); }
+    }
+
+    async function fetchHistory() {
+        const container = document.getElementById("recordsContainer");
+        container.innerHTML = '<p style="text-align:center;">Loading...</p>';
+        const res = await fetch(`${BASE_URL}/api/health/pet/${currentPetId}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` } });
+        if(res.ok) {
+            globalHealthRecords = await res.json();
+            applyMedicalFilters();        }
+    }
+
+function applyMedicalFilters() {
+    const typeEl = document.getElementById("filterType");
+    const startEl = document.getElementById("filterStart");
+    const endEl = document.getElementById("filterEnd");
+
+    if (!typeEl || !startEl || !endEl) {
+        console.warn("Medical filters not found on this screen.");
+        return;
+    }
+
+    const typeFilter = typeEl.value;
+    const startFilter = startEl.value;
+    const endFilter = endEl.value;
+
+    let filtered = globalHealthRecords.filter(rec => {
+        let matchesType = (typeFilter === "ALL") || (rec.type === typeFilter);
+        let matchesStart = !startFilter || (rec.recordDate >= startFilter);
+        let matchesEnd = !endFilter || (rec.recordDate <= endFilter);
+        return matchesType && matchesStart && matchesEnd;
+    });
+
+    renderHistoryList(filtered);
+}
+
+    function renderHistoryList(records) {
+        const list = document.getElementById("recordsContainer"); list.innerHTML = "";
+        if(records.length === 0) { list.innerHTML = "<p style='text-align:center; color:#888;'>No records found.</p>"; return; }
+        records.forEach(rec => {
+            let details = rec.type === "VACCINE" ? `<b>Vaccine:</b> ${rec.vaccineName}<br><b>Next Due:</b> ${rec.nextDueDate}` : `<b>Diagnosis:</b> ${rec.diagnosis}<br><b>Treatment:</b> ${rec.treatment}`;
+            let badgeColor = rec.type === "VACCINE" ? "#00b894" : "#0984e3";
+            list.innerHTML += `<div class="timeline-item" style="border-left-color:${badgeColor}"><button class="delete-record-btn" onclick="deleteHealthRecord(${rec.id})" title="Delete Record"><i class="fa-solid fa-trash"></i></button><div class="timeline-header"><span class="badge" style="background:${badgeColor}">${rec.type}</span><span style="font-size:0.85rem; color:#888;">${rec.recordDate}</span></div><div style="font-size:0.9rem; line-height:1.5;"><b>Vet:</b> ${rec.vetName || 'N/A'}<br>${details}<br><i>${rec.notes || ''}</i></div></div>`;
+        });
+    }
+
+    async function deleteHealthRecord(id) {
+        if(confirm("Delete this record?")) {
+            const res = await fetch(`${BASE_URL}/api/health/${id}`, { method: "DELETE", headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` } });
+            if(res.ok) { alert("Deleted"); fetchHistory(); loadDashboardStats(); } else { alert("Error"); }
+        }
+    }
+
+    function openVitals(petId) { currentPetId = petId; document.getElementById("vitalsModal").classList.remove("hidden"); loadVitalsChart(); }
+    function closeVitalsModal() { document.getElementById("vitalsModal").classList.add("hidden"); }
+
+    async function saveVital() {
+        const date = document.getElementById("vitalDate").value; const weight = document.getElementById("vitalWeight").value; const temp = document.getElementById("vitalTemp").value; const notes = document.getElementById("vitalNotes").value;
+        if(!date || (!weight && !temp)) { alert("Enter Date and at least Weight or Temp"); return; }
+        const data = { recordDate: date, weight: weight || null, temperature: temp || null, notes: notes || "" };
+        const res = await fetch(`${BASE_URL}/api/vitals/add?petId=${currentPetId}`, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }, body: JSON.stringify(data) });
+        if(res.ok) { alert("Saved!"); document.getElementById("vitalWeight").value = ""; document.getElementById("vitalTemp").value = ""; document.getElementById("vitalNotes").value = ""; loadVitalsChart(); } else { alert("Failed"); }
+    }
+
+    async function loadVitalsChart() {
+            try {
+                const res = await fetch(`${BASE_URL}/api/vitals/pet/${currentPetId}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` } });
+                if (!res.ok) return;
+                const data = await res.json();
+                const labels = data.map(d => d.recordDate); const weights = data.map(d => d.weight);
+                const ctx = document.getElementById('vitalsChart').getContext('2d');
+                if (myChart) {
+                    myChart.data.labels = labels;
+                    myChart.data.datasets = [{ label: 'Weight (kg)', data: weights, borderColor: '#6C63FF', backgroundColor: 'rgba(108, 99, 255, 0.1)', borderWidth: 3, pointBackgroundColor: '#fff', pointBorderColor: '#6C63FF', pointRadius: 5, tension: 0.3, fill: true }];
+                    myChart.update();
+                } else {
+                    myChart = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Weight (kg)', data: weights, borderColor: '#6C63FF', backgroundColor: 'rgba(108, 99, 255, 0.1)', borderWidth: 3, pointBackgroundColor: '#fff', pointBorderColor: '#6C63FF', pointRadius: 5, tension: 0.3, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: true }, tooltip: { callbacks: { label: function(context) { return `Weight: ${context.parsed.y} kg`; } } } }, scales: { y: { beginAtZero: false, title: { display: true, text: 'Weight (kg)' } }, x: { title: { display: true, text: 'Date' } } } } });
+                }
+            } catch (e) { console.error("Chart Error:", e); }
+    }
+
+    function startCheckout() {
+    const cartList = document.getElementById("cartItemsList");
+    cartList.innerHTML = `
+        <h4 class="mb-3">Step 1: Shipping Address</h4>
+        <div class="input-group mb-2"><i class="fa-solid fa-map-location-dot"></i><input type="text" id="shipAddr" placeholder="Flat No / Area" class="form-control"></div>
+        <div class="input-group mb-2"><i class="fa-solid fa-city"></i><input type="text" id="shipCity" placeholder="City & Pincode" class="form-control"></div>
+        <div class="input-group mb-3"><i class="fa-solid fa-phone"></i><input type="text" id="shipPhone" placeholder="Contact Number" class="form-control"></div>
+        <button class="btn btn-primary w-100" onclick="showPayment()">Continue to Payment</button>
+    `;
+}
+
+function showPayment() {
+    if(!document.getElementById("shipAddr").value) { alert("Please enter address!"); return; }
+    const cartList = document.getElementById("cartItemsList");
+    cartList.innerHTML = `
+        <h4 class="mb-3">Step 2: Payment Method</h4>
+        <div class="card p-3 mb-2" style="border:2px solid var(--primary); cursor:pointer;">
+            <input type="radio" checked> <label class="ms-2">Cash on Delivery (COD)</label>
+        </div>
+        <button class="btn btn-success w-100 mt-3" onclick="placeOrder()">Confirm & Place Order</button>
+    `;
+}
+
+function placeOrder() {
+    alert("🚀 Order Placed Successfully!\nThank you for shopping with PawTrack.");
+    cart = [];
+    updateCartUI();
+    bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
+}
+
+    function logout() {
+        localStorage.removeItem("jwt_token");
+        localStorage.removeItem("pawtrack_email");
+        location.reload();
+    }
+
+    function renderVets(vets) {
+    const list = document.getElementById("vetsList");
+    list.innerHTML = "";
+
+    if(!vets || vets.length === 0) {
+        list.innerHTML = "<p style='color:#888; text-align:center; padding:20px;'>No vets registered yet.</p>";
+        return;
+    }
+
+    vets.forEach(vet => {
+        const img = (vet.photoUrl && vet.photoUrl !== "default.png") ? BASE_URL + vet.photoUrl : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
+
+        list.innerHTML += `
+        <div class="vet-card">
+            <img src="${img}" class="vet-avatar">
+            <div class="vet-info">
+                <h3 style="margin:0;">${vet.fullName || 'Dr. Unknown'}</h3>
+                <p style="color:#888; margin:2px 0;">${vet.specialization || 'General Vet'} • ${vet.clinicAddress || 'Address N/A'}</p>
+
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openBookingModal(${vet.id})">Book Appointment</button>
+        </div>`;
+    });
+}
+
+    function filterVets() {
+    const specQuery = document.getElementById("vetSearchSpec").value.toLowerCase();
+    const locQuery = document.getElementById("vetSearchLoc").value;
+
+    if (!window.allVetsFromDB) return;
+
+    const filtered = window.allVetsFromDB.filter(vet => {
+        const spec = (vet.specialization || "").toLowerCase();
+        const clinicAddr = (vet.clinicAddress || "").toLowerCase();
+        const name = (vet.fullName || "").toLowerCase();
+
+        const matchesSpec = spec.includes(specQuery) || name.includes(specQuery);
+        const matchesLoc = (locQuery === "All") || clinicAddr.includes(locQuery.toLowerCase());
+
+        return matchesSpec && matchesLoc;
+    });
+
+    renderVets(filtered);
+}
+
+async function createSlot() {
+    const data = {
+        vetId: currentUserId,
+        date: document.getElementById("slotDate").value,
+        startTime: document.getElementById("slotStart").value + ":00",
+        endTime: document.getElementById("slotEnd").value + ":00",
+        consultationType: document.getElementById("slotType").value,
+        capacity: parseInt(document.getElementById("slotCapacity").value)
+    };
+
+    if(!data.date || !data.startTime || !data.endTime) { alert("Please fill all fields"); return; }
+
+    const res = await fetch(`${BASE_URL}/api/slots/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` },
+        body: JSON.stringify(data)
+    });
+
+    if(res.ok) {
+        alert("Slot Created Successfully!");
+        loadVetSlots(currentUserId);
+    } else {
+        alert("Error creating slot. Check if date is duplicate.");
+    }
+}
+
+async function loadVetSlots(vetId) {
+    const res = await fetch(`${BASE_URL}/api/slots/vet/${vetId}`, {
+        headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
+    });
+    if(res.ok) {
+        const slots = await res.json();
+        const container = document.getElementById("slotsList");
+        container.innerHTML = "";
+        slots.forEach(slot => {
+            container.innerHTML += `
+            <div class="info-box">
+                <div style="display:flex; justify-content:space-between;">
+                    <span style="font-weight:800; color:var(--primary);">${slot.date}</span>
+                    <span class="badge" style="background:var(--secondary);">${slot.bookedCount}/${slot.capacity} Booked</span>
+                </div>
+                <div style="font-size:0.9rem; margin-top:5px;">
+                    <i class="fa-regular fa-clock"></i> ${slot.startTime} - ${slot.endTime}<br>
+                    <i class="fa-solid fa-video"></i> ${slot.consultationType}
+                </div>
+            </div>`;
+        });
+    }
+}
+
+let selectedSlotId = null;
+
+function openBookingModal(vetId) {
+    document.getElementById("bookVetId").value = vetId;
+    document.getElementById("bookingModal").classList.remove("hidden");
+    document.getElementById("slotSelectionArea").classList.add("hidden");
+    document.getElementById("finalBookingForm").classList.add("hidden");
+
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("bookDate").setAttribute('min', today);
+
+    const petSelect = document.getElementById("bookPetId");
+    petSelect.innerHTML = "";
+    globalPets.forEach(pet => {
+        petSelect.innerHTML += `<option value="${pet.id}">${pet.name}</option>`;
+    });
+}
+
+async function checkSlotsForDate() {
+    const vetId = document.getElementById("bookVetId").value;
+    const date = document.getElementById("bookDate").value;
+
+    const res = await fetch(`${BASE_URL}/api/slots/vet/${vetId}`, {
+        headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
+    });
+
+    const container = document.getElementById("availableSlotsContainer");
+    container.innerHTML = "";
+    document.getElementById("slotSelectionArea").classList.remove("hidden");
+    document.getElementById("finalBookingForm").classList.add("hidden");
+
+    if(res.ok) {
+        const allSlots = await res.json();
+        const slots = allSlots.filter(s => s.date === date);
+
+        if(slots.length === 0) {
+            container.innerHTML = "<p style='color:red;'>No slots available on this date.</p>";
+            return;
+        }
+
+        slots.forEach(slot => {
+            const isFull = slot.bookedCount >= slot.capacity;
+            container.innerHTML += `
+            <div onclick="${isFull ? '' : `selectSlot(${slot.id}, this)`}"
+                 style="padding:10px; border:2px solid ${isFull ? '#eee' : '#ddd'}; border-radius:10px; cursor:${isFull ? 'not-allowed' : 'pointer'}; background:${isFull ? '#f9f9f9' : 'white'}; opacity:${isFull ? 0.6 : 1}">
+                <div style="font-weight:700;">${slot.startTime} - ${slot.endTime}</div>
+                <div style="font-size:0.8rem;">${slot.consultationType} • Capacity: ${slot.bookedCount}/${slot.capacity}</div>
+                ${isFull ? '<span style="color:red; font-size:0.8rem; font-weight:800;">FULL</span>' : ''}
+            </div>`;
+        });
+    }
+}
+
+function selectSlot(slotId, element) {
+    selectedSlotId = slotId;
+    document.querySelectorAll('#availableSlotsContainer div').forEach(d => d.style.borderColor = '#ddd');
+    element.style.borderColor = 'var(--primary)';
+
+    document.getElementById("finalBookingForm").classList.remove("hidden");
+}
+
+async function confirmBooking() {
+    const data = {
+        ownerId: currentUserId,
+        vetId: document.getElementById("bookVetId").value,
+        slotId: selectedSlotId,
+        appointmentDate: document.getElementById("bookDate").value,
+        petName: document.getElementById("bookPetId").options[document.getElementById("bookPetId").selectedIndex].text,
+        reason: document.getElementById("bookReason").value,
+        type: document.getElementById("bookType").value
+    };
+
+    const res = await fetch(`${BASE_URL}/api/appointments/book`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` },
+        body: JSON.stringify(data)
+    });
+
+    if(res.ok) {
+        alert("Booking Request Sent! Status: PENDING");
+        document.getElementById("bookingModal").classList.add("hidden");
+        loadAppointments();
+    } else {
+        alert("Booking Failed.");
+    }
+}
+async function loadAppointments() {
+    let url = currentUserRole === "VET"
+        ? `${BASE_URL}/api/appointments/vet/${currentUserId}`
+        : `${BASE_URL}/api/appointments/owner/${currentUserId}`;
+
+    const res = await fetch(url, { headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` } });
+    const list = document.getElementById("appointmentsList");
+    list.innerHTML = "";
+
+    if(res.ok) {
+        const appts = await res.json();
+
+        if (currentUserRole === "VET" && appts) {
+            const today = new Date().toISOString().split('T')[0];
+            const todaysAppts = appts.filter(a => a.appointmentDate === today);
+
+            document.getElementById("vetInClinicCount").innerText = todaysAppts.length;
+
+            renderVetChart(appts);
+        }
+
+        if(appts.length === 0) { list.innerHTML = "<p>No appointments found.</p>"; return; }
+
+        appts.forEach(appt => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const apptDate = new Date(appt.appointmentDate);
+            apptDate.setHours(0, 0, 0, 0);
+
+            let displayStatus = appt.status;
+            if (apptDate < today && appt.status !== "CANCELLED") {
+                displayStatus = "COMPLETED";
+            }
+
+            let badgeClass = "status-" + displayStatus.toLowerCase();
+            let actionButtons = "";
+
+            if(currentUserRole === "VET") {
+                if(displayStatus === "PENDING") {
+                    actionButtons = `
+                        <button class="btn btn-success btn-sm" onclick="updateApptStatus(${appt.id}, 'CONFIRMED')">Confirm</button>
+                        <button class="btn btn-danger btn-sm" onclick="updateApptStatus(${appt.id}, 'CANCELLED')">Reject</button>
+                    `;
+                }
+               else if(displayStatus === "CONFIRMED" && appt.type === "TELECONSULT") {
+                    actionButtons = `
+                        <div class="prescription-mini-form" style="background:#fff7ed; padding:10px; border-radius:12px; border:1px solid #ffedd5; margin-top:10px;">
+                            <p class="small fw-bold text-warning mb-1"><i class="fas fa-pen-nib"></i> Add Teleconsult Notes</p>
+                            <input type="text" id="diag-${appt.id}" placeholder="Diagnosis" class="form-control form-control-sm mb-1">
+                            <input type="text" id="meds-${appt.id}" placeholder="Medicines" class="form-control form-control-sm mb-1">
+                            <button class="btn btn-success btn-sm w-100" onclick="savePrescription(${appt.id})">Save & Send</button>
+                        </div>
+                    `;
+                }
+                else if(displayStatus === "COMPLETED") {
+                    actionButtons = `<span class="badge bg-success text-white"><i class="fas fa-check-circle"></i> Visit Done</span>`;
+                }
+            }
+
+            if(currentUserRole === "OWNER") {
+                if(displayStatus === "PENDING") {
+                    actionButtons = `<button class="btn btn-danger btn-sm" onclick="updateApptStatus(${appt.id}, 'CANCELLED')">Cancel</button>`;
+                }
+
+                if(appt.type === "TELECONSULT" && appt.diagnosis && appt.diagnosis !== "" && appt.diagnosis !== "null") {
+                    actionButtons += `
+                        <button class="btn btn-warning btn-sm fw-bold ms-2" onclick="viewTelePrescription('${appt.diagnosis}', '${appt.medicines}')">
+                            <i class="fas fa-file-medical"></i> View Rx
+                        </button>`;
+                }
+            }
+
+            let meetingHtml = "";
+            if(displayStatus === "CONFIRMED" && appt.type === "TELECONSULT") {
+                const finalLink = (appt.meetingLink && appt.meetingLink.startsWith('http'))
+                                  ? appt.meetingLink : `https://meet.jit.si/PawTrack-${appt.id}`;
+                meetingHtml = `<a href="${finalLink}" target="_blank" class="btn btn-primary btn-sm me-2"><i class="fas fa-video"></i> Join</a>`;
+            }
+
+            list.innerHTML += `
+            <div class="appt-card appt-${displayStatus.toLowerCase()}" style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #eee;">
+                <div>
+                    <h4 style="margin:0;">${appt.petName}</h4>
+                    <p style="margin:5px 0; color:#666;">${appt.appointmentDate} • ${appt.type}</p>
+                    <span class="status-badge ${badgeClass}">${displayStatus}</span>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    ${meetingHtml}
+                    ${actionButtons}
+                </div>
+            </div>`;
+        });
+    }
+}
+
+function viewPrescription(diag, meds) {
+    if(!diag || diag === 'undefined') {
+        alert("Prescription details not available yet.");
+        return;
+    }
+    alert(`🩺 PAWTRACK MEDICAL REPORT\n--------------------------\nDiagnosis: ${diag}\n\nMedicines: ${meds}`);
+}
+function getComputedApptStatus(appt) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const apptDate = new Date(appt.appointmentDate);
+    apptDate.setHours(0, 0, 0, 0);
+
+    if (appt.status === "CANCELLED") return "CANCELLED";
+
+
+    if (apptDate < today) return "COMPLETED";
+
+    return appt.status;
+}
+async function savePrescription(apptId) {
+    const diagnosis = document.getElementById(`diag-${apptId}`).value;
+    const medicines = document.getElementById(`meds-${apptId}`).value;
+
+    if(!diagnosis || !medicines) {
+        alert("Please fill both fields!");
+        return;
+    }
+
+    const response = await fetch(`${BASE_URL}/api/appointments/prescriptions/${apptId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            "Authorization": `Bearer ${localStorage.getItem("jwt_token")}`
+        },
+        body: JSON.stringify({
+            diagnosis: diagnosis,
+            medicines: medicines
+        })
+    });
+
+    if (response.ok) {
+        alert("✅ Prescription Saved!");
+        loadAppointments();
+    }
+}
+async function updateApptStatus(apptId, newStatus) {
+    if(!confirm(`Are you sure you want to mark this as ${newStatus}?`)) return;
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/appointments/update-status/${apptId}?status=${newStatus}`, {
+            method: 'PUT',
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("jwt_token")}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (res.ok) {
+            alert(`Appointment updated to ${newStatus}!`);
+            loadAppointments();
+        } else {
+            const errorText = await res.text();
+            alert("Error: " + errorText);
+        }
+    } catch (e) {
+        console.error("Update status error:", e);
+        alert("Server error while updating status.");
+    }
+}
+async function loadVetAppointments() {
+    const res = await fetch(`${BASE_URL}/api/appointments/vet/${currentUserId}`, {
+        headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
+    });
+    if (res.ok) {
+        const apps = await res.json();
+        renderVetAppointments(apps);
+    }
+}
+
+async function updateApptStatus(apptId, newStatus) {
+
+    const url = `${BASE_URL}/api/appointments/update-status/${apptId}?status=${newStatus}`;
+
+    console.log("Full Request URL:", url);
+
+    const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+            "Authorization": `Bearer ${localStorage.getItem("jwt_token")}`
+        }
+    });
+
+    if (res.ok) {
+        alert("Status updated successfully!");
+        loadAppointments();
+    } else {
+        console.error("Error code:", res.status);
+    }
+}
+
+async function updateApptStatus(apptId, newStatus) {
+    if(!apptId) {
+        alert("Error: Appointment ID missing!");
+        return;
+    }
+
+    if(!confirm(`Are you sure you want to mark this as ${newStatus}?`)) return;
+
+    const url = `${BASE_URL}/api/appointments/update-status/${apptId}?status=${newStatus}`;
+
+    console.log("Sending Request to:", url);
+
+    try {
+        const res = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("jwt_token")}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (res.ok) {
+            alert(`Success! Status is now ${newStatus}`);
+            loadAppointments();
+        } else {
+            const errorText = await res.text();
+            console.error("Server Error:", errorText);
+            alert("Failed to update: " + res.status);
+        }
+    } catch (e) {
+        console.error("Network Error:", e);
+        alert("Could not connect to server.");
+    }
+}
+async function fetchAndRenderRealVets() {
+    try {
+        const res = await fetch(`${BASE_URL}/user/all-vets`, {
+            headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
+        });
+
+        if (res.ok) {
+            const realVets = await res.json();
+            window.allVetsFromDB = realVets;
+            renderVets(realVets);
+        }
+    } catch (e) {
+        console.error("Error fetching vets:", e);
+    }
+}
+
+    async function applyMarketplaceFilters() {
+    const category = document.getElementById('filterCategory').value;
+    const maxPrice = document.getElementById('filterPrice').value;
+    const minPrice = 0;
+
+    const url = `${BASE_URL}/api/products/filter?category=${category}&minPrice=${minPrice}&maxPrice=${maxPrice}`;
+    const res = await fetch(url);
+    const products = await res.json();
+
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = "";
+
+    if(products.length === 0) {
+        grid.innerHTML = "<p class='text-center w-100'>No products found in this range.</p>";
+        return;
+    }
+
+    products.forEach(p => {
+        grid.innerHTML += `
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <img src="${p.imageUrl || 'https://via.placeholder.com/150'}" class="card-img-top" alt="product">
+                    <div class="card-body">
+                        <h5 class="card-title">${p.title}</h5>
+                        <p class="text-primary fw-bold">₹${p.price}</p>
+                        <p class="card-text small text-muted">${p.description}</p>
+                        <button class="btn btn-warning btn-sm w-100" onclick="addToCart(${p.id})">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+async function addToCart(productId) {
+    const ownerId = localStorage.getItem("userId");
+
+    const res = await fetch(`${BASE_URL}/api/cart/add/${ownerId}/${productId}`, {
+        method: 'POST'
+    });
+
+    if(res.ok) {
+        alert("🛒 Item added to cart successfully!");
+        updateCartCount();
+    }
+}
+
+async function loadAdminInventory() {
+    try {
+        const res = await fetch(`${BASE_URL}/api/products/all`, {
+            headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
+        });
+
+        if (!res.ok) return;
+
+        const products = await res.json();
+        const tableBody = document.getElementById("adminProductTable");
+
+        if (Array.isArray(products)) {
+            tableBody.innerHTML = "";
+            products.forEach(p => {
+                tableBody.innerHTML += `
+                <tr style="border-bottom: 1px solid #f1f3f9; vertical-align: middle; transition: 0.3s;">
+                    <td style="padding: 15px 10px;">
+                        <div class="d-flex align-items-center">
+                            <div style="width: 55px; height: 55px; background: #f8f9fa; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 1px solid #eee;">
+                                <img src="${p.imageUrl}" style="max-width: 90%; max-height: 90%; object-fit: contain;">
+                            </div>
+                            <div class="ms-3">
+                                <div class="fw-bold text-dark" style="font-size: 0.95rem;">${p.title}</div>
+                                <span class="badge bg-light text-primary" style="font-size: 0.65rem; border: 1px solid #eef2ff;">ID: #${p.id}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="padding: 15px 10px;">
+                        <span class="badge bg-soft-primary" style="background: #6c63ff15; color: #6c63ff; font-weight: 700; font-size: 0.75rem;">${p.category}</span>
+                    </td>
+                    <td style="padding: 15px 10px;">
+                        <div class="fw-bold text-dark">₹${p.price}</div>
+                    </td>
+                    <td style="padding: 15px 10px;">
+                        <div class="d-flex align-items-center">
+                            <div class="fw-bold ${p.stock < 10 ? 'text-danger' : 'text-success'}" style="font-size: 1rem;">${p.stock}</div>
+                            ${p.stock < 10 ? '<i class="fa-solid fa-circle-exclamation text-danger ms-2" title="Low Stock" style="font-size: 0.8rem;"></i>' : ''}
+                        </div>
+                        <div class="progress mt-1" style="height: 4px; width: 50px;">
+                            <div class="progress-bar ${p.stock < 10 ? 'bg-danger' : 'bg-success'}" role="progressbar" style="width: ${Math.min(p.stock * 2, 100)}%"></div>
+                        </div>
+                    </td>
+                    <td style="padding: 15px 10px;">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light btn-sm rounded-circle shadow-sm" onclick="editProduct(${JSON.stringify(p).replace(/"/g, '&quot;')})" style="width: 35px; height: 35px; background: white; border: 1px solid #eee;">
+                                <i class="fa-solid fa-pen text-primary"></i>
+                            </button>
+                            <button class="btn btn-light btn-sm rounded-circle shadow-sm" onclick="deleteProduct(${p.id})" style="width: 35px; height: 35px; background: white; border: 1px solid #eee;">
+                                <i class="fa-solid fa-trash text-danger"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        }
+    } catch (error) {
+        console.error("Fetch error:", error);
+    }
+}
+async function deleteProduct(id) {
+    if(!confirm("Are you sure you want to remove this product?")) return;
+
+    const res = await fetch(`${BASE_URL}/api/products/${id}`, {
+        method: 'DELETE',
+        headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
+    });
+
+    if(res.ok) {
+        alert("Product removed!");
+        loadAdminInventory();
+    }
+}
+
+   let cart = [];
+
+function addToCart(productId) {
+    fetch(`${BASE_URL}/api/products/all`)
+        .then(res => res.json())
+        .then(products => {
+            const product = products.find(p => p.id === productId);
+
+            if (!product) return;
+
+            const existingInCart = cart.find(item => item.id === productId);
+            const currentQtyInCart = existingInCart ? existingInCart.quantity : 0;
+
+            if (product.stock <= currentQtyInCart) {
+                alert(`⚠️ Stock Out! Only ${product.stock} units available.`);
+                return;
+            }
+
+            if (existingInCart) {
+                existingInCart.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+
+            alert(`✅ ${product.title} added to cart!`);
+            updateCartUI();
+        });
+}
+
+function updateCartUI() {
+    const badge = document.getElementById("cartBadge");
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+    if (totalItems > 0) {
+        badge.innerText = totalItems;
+        badge.style.display = "block";
+    } else {
+        badge.style.display = "none";
+    }
+    renderCart();
+}
+
+function renderCart() {
+    const cartList = document.getElementById("cartItemsList");
+    const checkoutTotal = document.getElementById("checkoutTotal");
+    if (!cartList) return;
+
+    if (cart.length === 0) {
+        cartList.innerHTML = `<div style="text-align:center; padding:50px;"><i class="fa-solid fa-basket-shopping fa-3x" style="color:#ddd;"></i><p style="color:#888; margin-top:15px;">Your bag is empty!</p></div>`;
+        checkoutTotal.innerText = "₹0";
+        return;
+    }
+
+    let total = 0;
+    let itemsHtml = '';
+    cart.forEach(item => {
+        total += item.price * item.quantity;
+        itemsHtml += `
+            <div class="cart-item" style="background: white; border: 1px solid #f0f0f0; margin-bottom: 15px; padding: 15px; border-radius:18px; display:flex; align-items:center; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                <img src="${item.imageUrl || 'https://via.placeholder.com/60'}" style="width:70px; height:70px; border-radius:12px; object-fit:cover;">
+                <div style="flex:1; margin-left:20px;">
+                    <h6 style="margin:0; font-weight:800; font-size:1.1rem;">${item.title}</h6>
+                    <p style="color:var(--primary); font-weight:700; margin:5px 0;">₹${item.price}</p>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; background:#f8f9fa; padding:8px 15px; border-radius:50px;">
+                    <button class="btn btn-sm" style="border:none; font-weight:900;" onclick="changeQty(${item.id}, -1)">-</button>
+                    <span style="font-weight:800;">${item.quantity}</span>
+                    <button class="btn btn-sm" style="border:none; font-weight:900;" onclick="changeQty(${item.id}, 1)">+</button>
+                </div>
+            </div>`;
+    });
+
+    cartList.innerHTML = itemsHtml;
+    checkoutTotal.innerText = "₹" + total;
+
+
+    const saved = localStorage.getItem('last_full_addr_pawtrack');
+    const suggestArea = document.getElementById("addressSuggestions");
+    if(saved) {
+        const addr = JSON.parse(saved);
+        suggestArea.innerHTML = `
+            <p style="font-size:0.75rem; font-weight:800; color:var(--primary); margin-bottom:8px;">LAST USED ADDRESS:</p>
+            <div class="saved-address-chip" onclick='fillFullAddress(${saved})'>
+                <i class="fa-solid fa-location-dot"></i> ${addr.house}, ${addr.city}
+            </div>`;
+    } else {
+        suggestArea.innerHTML = "";
+    }
+}
+
+function finalizeOrder() {
+    cart = [];
+    updateCartUI();
+    bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
+}
+
+function fillFullAddress(data) {
+    if(!data) return;
+
+    document.getElementById("shipHouse").value = data.house || "";
+    document.getElementById("shipArea").value = data.area || "";
+    document.getElementById("shipCity").value = data.city || "";
+    document.getElementById("shipPin").value = data.pincode || "";
+
+    console.log("✅ Address Suggestion Applied");
+}
+function changeQty(id, delta) {
+    const item = cart.find(i => i.id === id);
+    if (!item) return;
+
+    if (delta > 0) {
+        if (item.quantity >= item.stock) {
+            alert("⚠️ Cannot add more! Stock limit reached.");
+            return;
+        }
+        item.quantity += 1;
+    } else {
+        if (item.quantity <= 1) {
+            removeFromCart(id);
+            return;
+        }
+        item.quantity -= 1;
+    }
+    updateCartUI();
+}
+
+function removeFromCart(id) {
+    cart = cart.filter(item => item.id !== id);
+    updateCartUI();
+}
+
+async function loadMarketplace() {
+    const searchVal = document.getElementById("mktSearch").value.toLowerCase();
+    const category = document.getElementById("mktCategory").value;
+    const maxPrice = document.getElementById("mktMaxPrice").value || 10000;
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/products/all`);
+        const products = await res.json();
+
+        const grid = document.getElementById("productGrid");
+        grid.innerHTML = "";
+
+        const filtered = products.filter(p => {
+            const matchesSearch = p.title.toLowerCase().includes(searchVal) ||
+                                 p.description.toLowerCase().includes(searchVal);
+            const matchesCategory = (category === "All" || p.category === category);
+            const matchesPrice = (p.price <= maxPrice);
+            return matchesSearch && matchesCategory && matchesPrice;
+        });
+
+        filtered.forEach(p => {
+            grid.innerHTML += `
+                <div class="pet-card" onclick="viewProductDetail(${JSON.stringify(p).replace(/"/g, '&quot;')})">
+                    <img src="${p.imageUrl}" class="pet-img">
+                    <h3>${p.title}</h3>
+                    <p class="text-primary fw-bold">₹${p.price}</p>
+                    <button class="btn btn-primary btn-sm w-100" onclick="event.stopPropagation(); addToCart(${p.id})">
+                        Add to Cart
+                    </button>
+                </div>`;
+        });
+    } catch (e) { console.error("Search Error:", e); }
+}
+function editProduct(p) {
+    currentEditingProductId = p.id;
+    document.getElementById('pTitle').value = p.title;
+    document.getElementById('pPrice').value = p.price;
+    document.getElementById('pCategory').value = p.category;
+    document.getElementById('pStock').value = p.stock;
+    document.getElementById('pImgUrl').value = p.imageUrl;
+    document.getElementById('pDesc').value = p.description;
+
+    const saveBtn = document.querySelector("#adminInventorySection button.btn-primary");
+    if(saveBtn) {
+        saveBtn.innerHTML = '<i class="fas fa-sync"></i> Update Product';
+    }
+
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+function viewProductDetail(p) {
+    document.getElementById("pDetailImg").src = p.imageUrl || 'https://via.placeholder.com/150';
+    document.getElementById("pDetailTitle").innerText = p.title;
+    document.getElementById("pDetailCat").innerText = p.category;
+    document.getElementById("pDetailPrice").innerText = "₹" + p.price;
+    document.getElementById("pDetailStock").innerText = p.stock > 0 ? "In Stock (" + p.stock + ")" : "Out of Stock";
+    document.getElementById("pDetailDesc").innerText = p.description;
+
+    document.getElementById("pDetailCartBtn").onclick = () => {
+        addToCart(p.id);
+        closeProductModal();
+    };
+
+    document.getElementById("viewProductModal").classList.remove("hidden");
+}
+
+function closeProductModal() {
+    document.getElementById("viewProductModal").classList.add("hidden");
+}
+
+    async function deleteProduct(id) {
+    if (!confirm("Are you sure you want to remove this product?")) return;
+
+    const token = localStorage.getItem("jwt_token");
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/products/${id}`, {
+            method: 'DELETE',
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        if (res.ok) {
+            alert("✅ Product deleted!");
+
+
+            loadAdminInventory();
+
+            if (typeof loadMarketplace === "function") {
+                loadMarketplace();
+            }
+
+        } else if (res.status === 404) {
+            alert("❌ Error: Delete endpoint not found on server (404). Check Backend Controller.");
+        } else {
+            alert("❌ Failed to delete. Status: " + res.status);
+        }
+    } catch (error) {
+        console.error("Delete Error:", error);
+        alert("❌ Connection error!");
+    }
+}
+function openCartModal() {
+    renderCart();
+    const modalEl = document.getElementById('cartModal');
+    if (modalEl) {
+        modalEl.classList.remove('hidden');
+
+        let myModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        myModal.show();
+
+        document.body.classList.add('modal-open');
+    }
+}
+async function processCheckout() {
+    const addr = {
+        house: document.getElementById("shipHouse").value,
+        area: document.getElementById("shipArea").value,
+        city: document.getElementById("shipCity").value,
+        pincode: document.getElementById("shipPin").value
+    };
+
+    if(!addr.house || !addr.city || !addr.pincode) {
+        alert("Please fill the full address!");
+        return;
+    }
+
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    if (paymentMethod === "COD") {
+        const orderData = {
+            email: userEmail || localStorage.getItem("pawtrack_email"),
+            amount: totalAmount,
+            method: "COD",
+            address: addr,
+            items: JSON.parse(JSON.stringify(cart)),
+            status: "SUCCESS",
+            date: new Date().toLocaleString()
+        };
+
+        saveOrderToHistory(orderData);
+        localStorage.setItem('last_full_addr_pawtrack', JSON.stringify(addr));
+        alert("🚀 Order Successful! (Cash on Delivery)");
+        finalizeOrder();
+    } else {
+        try {
+            const response = await fetch(`${BASE_URL}/api/payments/create-order`, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${localStorage.getItem("jwt_token")}`
+                },
+                body: JSON.stringify({ amount: totalAmount })
+            });
+
+            if (!response.ok) throw new Error("Backend order creation failed");
+            const rzpOrder = await response.json();
+
+            const options = {
+                "key": "rzp_test_Rz6dlunkevQSLE",
+                "amount": rzpOrder.amount,
+                "currency": "INR",
+                "name": "PawTrack Store",
+                "description": "Product Purchase",
+                "order_id": rzpOrder.id,
+                "handler": function (response) {
+                    confirmOnlineOrder(rzpOrder.id, addr, totalAmount);
+                },
+                "theme": { "color": "#6C63FF" }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+        } catch (e) {
+            console.error("Payment Error:", e);
+            alert("Bhai, Online payment initiate nahi ho payi.");
+        }
+    }
+}
+
+function confirmOnlineOrder(rzpId, address, amount) {
+    const orderData = {
+        email: userEmail || localStorage.getItem("pawtrack_email"),
+        amount: amount,
+        method: "ONLINE",
+        address: address,
+        items: JSON.parse(JSON.stringify(cart)),
+        status: "PLACED",
+        razorpayOrderId: rzpId,
+        date: new Date().toLocaleString()
+    };
+
+    saveOrderToHistory(orderData);
+
+    if (typeof updateAdminStats === "function") {
+        updateAdminStats();
+    }
+
+    localStorage.setItem('last_full_addr_pawtrack', JSON.stringify(address));
+    alert("🚀 Online Order Successful.");
+    finalizeOrder();
+}
+
+async function saveOrderToHistory(orderData) {
+    const token = localStorage.getItem("jwt_token");
+
+    let formattedAddress = "";
+    if (typeof orderData.address === 'object') {
+        formattedAddress = `${orderData.address.house || ''}, ${orderData.address.area || ''}, ${orderData.address.city || ''} - ${orderData.address.pincode || ''}`;
+    } else {
+        formattedAddress = orderData.address;
+    }
+
+    const dbOrder = {
+        email: userEmail || localStorage.getItem("pawtrack_email"),
+        amount: parseFloat(orderData.amount),
+        method: orderData.method,
+        address: formattedAddress,
+        items: JSON.stringify(orderData.items),
+        status: "PLACED"
+    };
+
+    console.log("Sending to MySQL:", dbOrder);
+
+    try {
+        const response = await fetch(`${BASE_URL}/api/orders/place`, {
+            method: 'POST',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(dbOrder)
+        });
+
+        if(response.ok) {
+            const savedData = await response.json();
+            console.log("✅ MySQL Save Success:", savedData);
+            loadOrders();
+        } else {
+            const errorTxt = await response.text();
+            console.error("❌ MySQL Save Failed:", errorTxt);
+        }
+    } catch (e) {
+        console.error("❌ Network Error:", e);
+    }
+}
+async function loadOrders() {
+    const container = document.getElementById("ordersListContainer");
+    if (!container) return;
+
+    try {
+        console.log("Fetching orders from MySQL for:", userEmail);
+        const res = await fetch(`${BASE_URL}/api/orders/my-orders?email=${userEmail}`, {
+            headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch");
+
+        const history = await res.json();
+        console.log("📦 Orders Data Received from DB:", history);
+
+        if (!history || history.length === 0) {
+            container.innerHTML = `<div class="col-12 text-center py-5 text-muted"><p>No orders found yet!</p></div>`;
+            return;
+        }
+
+        window.allMyOrders = history;
+
+        renderOrderUI(history);
+    } catch (e) {
+        console.error("Fetch Error:", e);
+        container.innerHTML = `<p class='text-center text-danger'>Error loading order history.</p>`;
+    }
+}
+function renderOrderUI(history) {
+    const container = document.getElementById("ordersListContainer");
+    if (!container) return;
+
+    const statusConfig = {
+        'PLACED': { color: '#f1c40f', bg: '#fff9db' },
+        'CONFIRMED': { color: '#2ecc71', bg: '#e9fac8' },
+        'SUCCESS': { color: '#2ecc71', bg: '#e9fac8' },
+        'DELIVERED': { color: '#27ae60', bg: '#ebfbee' }
+    };
+
+    container.innerHTML = history.map((order, index) => {
+        let items = [];
+        try {
+            items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+        } catch (e) { items = []; }
+
+        const firstItem = items && items.length > 0 ? items[0] : null;
+        const itemImg = firstItem ? (firstItem.imageUrl || firstItem.img) : 'https://cdn-icons-png.flaticon.com/512/11329/11329060.png';
+        const config = statusConfig[order.status] || { color: '#636e72', bg: '#f8f9fa' };
+
+        return `
+        <div class="col-12 mb-3">
+            <div class="order-card" onclick="viewOrderDetailDB(${order.id}, ${index})" style="border-left: 8px solid ${config.color} !important; cursor:pointer;">
+                <div class="order-img-wrapper">
+                    <img src="${itemImg}" style="max-width: 85%; max-height: 85%; object-fit: contain;">
+                </div>
+                <div style="flex:1;">
+                    <div class="order-status-pill" style="background: ${config.bg}; color: ${config.color}; border: 1px solid ${config.color}40;">
+                        ${order.status || 'PLACED'}
+                    </div>
+                    <div class="text-muted mb-1" style="font-size: 0.75rem;">Order ID: #PT-${order.id} • ${new Date(order.orderDate).toLocaleDateString()}</div>
+                    <h5 class="fw-bold mb-2">₹${order.amount}</h5>
+                    <p class="mb-2 text-muted small"><i class="fa-solid fa-location-dot text-danger me-1"></i> ${order.address}</p>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-light text-primary border">${order.method}</span>
+                        <span class="badge bg-light text-dark border">${items.length} Items</span>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+async function loadAdminOrders() {
+    const tableBody = document.getElementById("adminOrdersTableBody");
+    if(!tableBody) return;
+
+    try {
+        const res = await fetch(`${BASE_URL}/api/orders/admin/all`, {
+            headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch admin orders");
+
+        const history = await res.json();
+        console.log("👮 Admin Detailed Data:", history);
+
+        tableBody.innerHTML = history.map((order, index) => {
+            let items = [];
+            try {
+                items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+            } catch(e) {
+                items = [];
+            }
+
+            const itemsListHtml = items.map(item => `
+                <div style="font-size: 0.8rem; border-bottom: 1px dashed #eee; padding: 5px 0;">
+                    <span class="fw-bold text-primary">${item.quantity}x</span> ${item.title}
+                    <span class="text-muted">(₹${item.price})</span>
+                </div>
+            `).join('');
+
+            return `
+            <tr style="border-bottom: 2px solid #f8f9fa;">
+                <td style="padding: 20px 10px; width: 25%;">
+                    <div class="fw-bold" style="color: var(--primary);">#PT-${order.id}</div>
+                    <div class="small fw-bold">${order.email}</div>
+                    <div class="text-muted small" style="font-size: 0.7rem;">${new Date(order.orderDate).toLocaleString()}</div>
+                </td>
+
+                <td style="padding: 20px 10px; width: 30%;">
+                    <div class="small text-muted fw-bold text-uppercase" style="font-size: 0.65rem; margin-bottom: 5px;">Shipping Address:</div>
+                    <div style="font-size: 0.85rem; line-height: 1.4; background: #fdfdfd; padding: 8px; border-radius: 8px; border: 1px solid #f0f0f0;">
+                        <i class="fa-solid fa-location-dot text-danger me-1"></i> ${order.address}
+                    </div>
+                </td>
+
+                <td style="padding: 20px 10px; width: 25%;">
+                    <div class="small text-muted fw-bold text-uppercase" style="font-size: 0.65rem; margin-bottom: 5px;">Items Summary:</div>
+                    <div style="max-height: 100px; overflow-y: auto;">
+                        ${itemsListHtml}
+                    </div>
+                </td>
+
+                <td style="padding: 20px 10px; width: 20%;" class="text-end">
+                    <div class="fw-extrabold text-dark mb-2">₹${order.amount}</div>
+                    <select class="form-select form-select-sm fw-bold border-0 shadow-sm"
+                            style="background: #f8f9fa; border-radius: 8px; color: var(--primary); font-size: 0.75rem;"
+                            onchange="updateLiveStatus(${order.id}, this.value)">
+                        <option value="PLACED" ${order.status==='PLACED'?'selected':''}>PLACED</option>
+                        <option value="CONFIRMED" ${order.status==='CONFIRMED'?'selected':''}>CONFIRMED</option>
+                        <option value="PACKED" ${order.status==='PACKED'?'selected':''}>PACKED</option>
+                        <option value="SHIPPED" ${order.status==='SHIPPED'?'selected':''}>SHIPPED</option>
+                        <option value="OUT_FOR_DELIVERY" ${order.status==='OUT_FOR_DELIVERY'?'selected':''}>OUT_FOR_DELIVERY</option>
+                        <option value="DELIVERED" ${order.status==='DELIVERED'?'selected':''}>DELIVERED</option>
+                        <option value="CANCELLED" ${order.status==='CANCELLED'?'selected':''}>CANCELLED</option>
+                    </select>
+                </td>
+            </tr>`;
+        }).join('');
+    } catch (e) {
+        console.error("Admin Load Error:", e);
+    }
+}
+async function updateLiveStatus(orderId, newStatus) {
+    try {
+        const res = await fetch(`${BASE_URL}/api/orders/update-status/${orderId}?status=${newStatus}`, {
+            method: 'PUT',
+            headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
+        });
+
+        if (res.ok) {
+            alert("🚀 Order Status Updated in MySQL!");
+            loadAdminOrders();
+        }
+    } catch (e) {
+        alert("Status update failed!");
+    }
+}
+function viewOrderDetailDB(orderId, index) {
+    const order = window.allMyOrders[index];
+    if (!order) return;
+
+    let items = [];
+    try { items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items; } catch(e) { items = []; }
+
+    const statusList = ['PLACED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+    const currentIndex = statusList.indexOf(order.status || 'PLACED');
+
+    let trackingHtml = `
+        <div class="tracking-wrapper" style="overflow-x: auto; padding: 30px 10px; margin-bottom: 20px; background: #fff; border-radius: 20px;">
+            <div style="min-width: 850px; position: relative; display: flex; justify-content: space-between; align-items: flex-start;">
+
+                <div style="position: absolute; top: 25px; left: 50px; right: 50px; height: 4px; background: #f0f2f5; border-radius: 10px; z-index: 1;"></div>
+
+                <div style="position: absolute; top: 25px; left: 50px; width: ${(currentIndex / (statusList.length - 1)) * 88}%; height: 4px; background: #6C63FF; z-index: 2; transition: width 0.8s ease-in-out; border-radius: 10px;"></div>
+
+                ${statusList.map((s, i) => {
+                    const isDone = i <= currentIndex;
+                    let icon = "fa-circle";
+                    if(s === 'PLACED') icon = "fa-receipt";
+                    if(s === 'CONFIRMED') icon = "fa-check-double";
+                    if(s === 'PACKED') icon = "fa-box";
+                    if(s === 'SHIPPED') icon = "fa-truck-fast";
+                    if(s === 'OUT_FOR_DELIVERY') icon = "fa-motorcycle";
+                    if(s === 'DELIVERED') icon = "fa-house-circle-check";
+
+                    return `
+                    <div style="position: relative; z-index: 3; width: 120px; display: flex; flex-direction: column; align-items: center;">
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background: ${isDone ? '#6C63FF' : '#fff'}; border: 4px solid ${isDone ? '#e0deff' : '#f0f2f5'}; display: flex; align-items: center; justify-content: center; color: ${isDone ? '#fff' : '#adb5bd'}; transition: 0.4s; box-shadow: ${isDone ? '0 4px 10px rgba(108, 99, 255, 0.2)' : 'none'};">
+                            <i class="fa-solid ${icon}" style="font-size: 1.1rem;"></i>
+                        </div>
+                        <div style="margin-top: 15px; text-align: center;">
+                            <p style="margin: 0; font-size: 0.65rem; font-weight: 800; color: ${isDone ? '#2D3436' : '#9eaab4'}; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;">
+                                ${s.replace(/_/g, ' ')}
+                            </p>
+                            <span style="font-size: 0.6rem; color: #adb5bd;">${isDone ? 'Done' : 'Pending'}</span>
+                        </div>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>`;
+
+    document.getElementById("orderDetailContent").innerHTML = `
+        <div class="p-2">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                <h5 class="fw-bold text-dark mb-0">Order ID: #PT-${order.id}</h5>
+                <span class="badge bg-primary px-3 py-2 rounded-pill">${order.status}</span>
+            </div>
+
+            ${trackingHtml}
+
+            <div class="row g-4 mt-2">
+                <div class="col-md-5">
+                    <div class="p-4 rounded-4 border bg-light h-100">
+                        <h6 class="fw-bold small text-muted mb-3"><i class="fa-solid fa-location-dot me-2 text-danger"></i>SHIPPING ADDRESS</h6>
+                        <p class="small fw-bold text-dark mb-0" style="line-height:1.6;">${order.address}</p>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="p-4 rounded-4 border bg-white shadow-sm">
+                        <h6 class="fw-bold small text-muted mb-3"><i class="fa-solid fa-basket-shopping me-2 text-primary"></i>ITEMS SUMMARY</h6>
+                        <div style="max-height: 180px; overflow-y: auto; padding-right:5px;">
+                            ${items.map(item => `
+                                <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                                    <span class="small fw-bold">${item.title} (x${item.quantity})</span>
+                                    <span class="small fw-bold text-primary">₹${item.price * item.quantity}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="d-flex justify-content-between mt-3 pt-3 border-top">
+                            <span class="h5 fw-bold">Grand Total</span>
+                            <span class="h5 fw-bold text-primary">₹${order.amount}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("orderDetailModal").classList.remove("hidden");
+}
+let adminChart = null;
+
+async function updateAdminStats() {
+    try {
+        const res = await fetch(`${BASE_URL}/api/orders/admin/all`, {
+            headers: { "Authorization": `Bearer ${localStorage.getItem("jwt_token")}` }
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch orders");
+
+        const history = await res.json();
+        console.log("📊 Chart ke liye data:", history);
+
+        const totalRev = history.reduce((sum, o) => sum + parseFloat(o.amount || 0), 0);
+
+        document.getElementById('adminTotalRevenue').innerText = '₹' + totalRev.toLocaleString();
+        document.getElementById('adminTotalOrders').innerText = history.length;
+
+        renderWeeklyChart(history);
+
+    } catch (e) {
+        console.error("Dashboard Sync Error:", e);
+    }
+}
+   function renderWeeklyChart(orders) {
+    const ctxEl = document.getElementById('adminWeeklyChart');
+    if (!ctxEl) return;
+    const ctx = ctxEl.getContext('2d');
+
+    const days = [];
+    const counts = [];
+
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+        days.push(dateStr);
+
+        const count = orders.filter(o => {
+            const dbDate = new Date(o.orderDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+            return dbDate === dateStr;
+        }).length;
+        counts.push(count);
+    }
+
+    if (adminChart) adminChart.destroy();
+    adminChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: days,
+            datasets: [{
+                label: 'Orders',
+                data: counts,
+                borderColor: '#6C63FF',
+                backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+}
+function closeOrderDetailModal() {
+    const modal = document.getElementById("orderDetailModal");
+    if (modal) {
+        modal.classList.add("hidden");
+    }
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById("orderDetailModal");
+    if (event.target == modal) {
+        closeOrderDetailModal();
+    }
+}
+function viewTelePrescription(diag, meds) {
+    if(!diag || diag === 'undefined' || diag === 'null') {
+        alert("The vet is currently preparing your digital prescription.");
+        return;
+    }
+
+    const reportTemplate = `
+🐾 PAWTRACK DIGITAL PRESCRIPTION
+------------------------------------------
+🩺 DIAGNOSIS:
+${diag}
+
+💊 PRESCRIBED MEDICINES:
+${meds}
+------------------------------------------
+Keep your pet hydrated and healthy!
+    `;
+    alert(reportTemplate);
+}
+    let vetChartInstance = null;
+function renderVetChart(appts) {
+    const ctxEl = document.getElementById('vetAppointmentChart');
+    if (!ctxEl) return;
+    const ctx = ctxEl.getContext('2d');
+
+    const days = [];
+    const counts = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        days.push(d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }));
+        counts.push(appts.filter(a => a.appointmentDate === dateStr).length);
+    }
+
+    if (vetChartInstance) vetChartInstance.destroy();
+    vetChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: days,
+            datasets: [{
+                label: 'Daily Bookings',
+                data: counts,
+                borderColor: '#6C63FF',
+                backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+}
+    window.onload = function() {
+    const token = localStorage.getItem("jwt_token");
+    const email = localStorage.getItem("pawtrack_email");
+
+    if (token && email) {
+        console.log("🔄 Session found! Auto-logging in...");
+        userEmail = email;
+        loadDashboard(token);
+    } else {
+        console.log("👋 No session found. Showing Login screen.");
+        document.getElementById("authScreen").classList.remove("hidden");
+        document.getElementById("dashboardScreen").classList.add("hidden");
+    }
+};
+</script>
+</body>
+</html>
