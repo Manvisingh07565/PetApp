@@ -72,7 +72,6 @@ public class UserController {
                 Files.createDirectories(uploadDir);
             }
 
-            // Save file with unique name
             String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             Path filePath = uploadDir.resolve(filename);
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
@@ -86,7 +85,6 @@ public class UserController {
     }
     @GetMapping("/all-vets")
     public ResponseEntity<List<User>> getAllVets() {
-        // Ye method database se un saare users ko layega jinka role 'VET' hai
         return ResponseEntity.ok(userService.findAllVets());
     }
 }

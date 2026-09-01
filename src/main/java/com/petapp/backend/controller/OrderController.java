@@ -22,6 +22,12 @@ public class OrderController {
     public ResponseEntity<?> placeOrder(@RequestBody Order order) {
         order.setOrderDate(LocalDateTime.now());
         order.setStatus("PLACED");
+
+
+        if(order.getPaymentStatus() == null) {
+            order.setPaymentStatus("COMPLETED");
+        }
+
         Order savedOrder = orderRepository.save(order);
         return ResponseEntity.ok(savedOrder);
     }

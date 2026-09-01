@@ -92,7 +92,8 @@
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; color: white; font-weight: 700; }
         .delete-record-btn { position: absolute; bottom: 15px; right: 15px; background: #ffeaea; color: var(--danger); border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-        .filter-bar { display: flex; gap: 10px; background: #eee; padding: 10px; border-radius: 12px; margin-bottom: 15px; }
+        .filter-bar
+         { display: flex; gap: 10px; background: #eee; padding: 10px; border-radius: 12px; margin-bottom: 15px; }
         .filter-bar select, .filter-bar input { padding: 8px; font-size: 0.85rem; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 0; flex: 1; }
 
         @media (max-width: 768px) {
@@ -159,6 +160,34 @@
     justify-content: center;
     min-height: 100vh;
     z-index: 1000002 !important;
+}
+/* Mobile Devices (Phone ke liye) */
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column; /* Sidebar aur Content vertical ho jayenge */
+    }
+
+    .sidebar {
+        width: 100% !important;
+        height: auto;
+        position: relative;
+        padding: 10px;
+    }
+
+    .main-content {
+        padding: 15px;
+        margin-top: 0;
+    }
+
+    /* Grid ko single column banana */
+    .modern-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Images aur cards ko adjust karna */
+    .pet-card, .info-box {
+        width: 100%;
+    }
 }
 
 .modal-backdrop {
