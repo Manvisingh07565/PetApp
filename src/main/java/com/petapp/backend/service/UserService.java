@@ -39,33 +39,57 @@ public class UserService {
 
 
     public void sendOtp(AuthRequest request) {
+
         System.out.println(">>> Sending OTP to: " + request.getEmail());
-        Optional<User> existingUser = userRepository.findByEmail(request.getEmail());
+
+        Optional<User> existingUser =
+                userRepository.findByEmail(request.getEmail());
+
         User user;
         boolean isNewUser = false;
 
         if ("REGISTER".equalsIgnoreCase(request.getRequestType())) {
+
             if (existingUser.isPresent()) {
                 throw new RuntimeException("User already exists! Please Login.");
             }
+
             user = new User();
             user.setEmail(request.getEmail());
             user.setRole(request.getRole());
             isNewUser = true;
+
         } else {
+
             if (existingUser.isEmpty()) {
                 throw new RuntimeException("User not found! Please Register.");
             }
+
             user = existingUser.get();
             isNewUser = false;
         }
 
-        String otp = String.valueOf(new Random().nextInt(900000) + 100000);
+        // Generate 6-digit OTP
+        String otp = String.valueOf(
+                new Random().nextInt(900000) + 100000
+        );
+
+        // Send email FIRST
+        emailService.sendOtpEmail(
+                user.getEmail(),
+                otp,
+                isNewUser
+        );
+
+        // Save OTP ONLY if email was successfully sent
         user.setOtp(otp);
-        user.setOtpExpiry(LocalDateTime.now().plusMinutes(10));
+        user.setOtpExpiry(
+                LocalDateTime.now().plusMinutes(10)
+        );
+
         userRepository.save(user);
 
-        emailService.sendOtpEmail(user.getEmail(), otp, isNewUser);
+        System.out.println("✅ OTP saved successfully for: " + user.getEmail());
     }
     private final String UPLOAD_DIR = "uploads/";
 
