@@ -5,8 +5,8 @@ import com.petapp.backend.enums.AppointmentStatus;
 import com.petapp.backend.repository.AppointmentRepository;
 import com.petapp.backend.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
+//import org.springframework.boot.context.event.ApplicationReadyEvent;
+//import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
@@ -22,11 +22,11 @@ public class AppointmentReminderScheduler {
     private EmailService emailService;
 
     // A. SERVER START HOTE HI CHALEGA
-    @EventListener(ApplicationReadyEvent.class)
-    public void onServerStart() {
-        System.out.println("🚀 Server Started: Checking for immediate reminders...");
-        sendReminders();
-    }
+//    @EventListener(ApplicationReadyEvent.class)
+//    public void onServerStart() {
+//        System.out.println("🚀 Server Started: Checking for immediate reminders...");
+//        sendReminders();
+//    }
 
     // B. HAR 30 MINUTE MEIN AUTOMATIC CHALEGA
     @Scheduled(cron = "0 0/30 * * * *")
